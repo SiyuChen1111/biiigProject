@@ -1,0 +1,6 @@
+# Ignore temporary workspace data
+1_Data/
+
+# macOS files
+.DS_Store
+._*
