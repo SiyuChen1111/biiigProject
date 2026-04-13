@@ -1,6 +1,6 @@
 # biiigProject
 
-This repository now follows a **TIER-inspired transitional layout** for reproducible EEG analysis work. The current focus is a CPP-related EEGNet workflow on the Kosciessa `task-dynamic` dataset, with a completed phase-1 implementation and exploratory phase-2 label tests.
+This repository now follows a **TIER-inspired transitional layout** for reproducible EEG analysis work. The current focus is a CPP-related EEG workflow on the Kosciessa `task-dynamic` dataset, with a completed phase-1 discriminative pipeline, exploratory phase-2 label tests, and an early conditional EEG generation branch.
 
 ## Project layout
 
@@ -18,16 +18,14 @@ This repository now follows a **TIER-inspired transitional layout** for reproduc
   - executable experiment entry points
 - `2_Analysis/`
   - legacy notebook folder retained during the transition
-- `analysis/`
-  - optional future canonical notebook location under the TIER-style layout
 - `outputs/`
-  - generated run outputs (local, ignored by git)
+  - retained experiment outputs and analysis artifacts
 - `data/raw/`
-  - local raw dataset location expected by the scripts (ignored by git)
+  - optional preferred local raw dataset location if created by the user (ignored by git)
 
 ## Raw data
 
-The code prefers the Kosciessa dataset at:
+If present, the code prefers the Kosciessa dataset at:
 
 - `data/raw/CPP_low-level-2_Kosciessa_et_al_2021/`
 
@@ -70,12 +68,28 @@ Implemented exploratory scripts for external task labels:
 
 Current quick-check results suggest neither of these labels yet provides a strong cross-subject EEG decoding target under the present setup.
 
+### Conditional generation
+
+Implemented and retained:
+
+- `scripts/train_phase1_conditional_vae.py`
+- `scripts/analyze_conditional_vae_samples.py`
+- `src/models/conditional_eeg_vae.py`
+
+Current interpretation:
+
+- the conditional generator can train and write simulated EEG arrays
+- the generated waveforms are not yet physiologically convincing
+- the strongest next step is ROI-focused conditional generation rather than immediate scaling to all channels
+
 ## Main scripts
 
 - `scripts/train_phase1_eegnet.py`
 - `scripts/baseline_phase1_cpp_features.py`
 - `scripts/train_phase2_cue_dimensionality.py`
 - `scripts/train_phase2_rt_fastslow.py`
+- `scripts/train_phase1_conditional_vae.py`
+- `scripts/analyze_conditional_vae_samples.py`
 
 ## One-click-style master script
 
@@ -104,12 +118,12 @@ This repository is aligned to the spirit of TIER Protocol 4.0 rather than copyin
 - scripts are organized as reproducible entry points
 - reusable code is separated from executable scripts
 - project notes and protocol documents are kept under `docs/`
-- generated outputs are kept separate from source materials
+- generated outputs are kept separate from source materials and current key results are retained with the repository
 
 Current transitional caveats:
 
 - legacy folders such as `1_Data/` and `2_Analysis/` are still present
 - the loader supports both the preferred `data/raw/` path and the legacy `1_Data/` path
-- notebooks have not yet been fully moved into a canonical TIER-style `analysis/` directory
+- legacy notebooks are still stored in `2_Analysis/` rather than a renamed canonical analysis directory
 
-The current next scientific step is not more phase-1 tuning, but refining or replacing the external label definition for a stronger phase-2 task.
+The current next scientific step is not more phase-1 tuning, but moving from broad full-head generation toward a more defensible ROI-focused conditional generator.
