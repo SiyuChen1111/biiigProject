@@ -1,0 +1,32 @@
+[
+  {
+    "fold": 1,
+    "real_gap_mean": 2.4479506919306004e-06,
+    "generated_gap_mean": -0.00011676189751597121,
+    "gap_abs_error": 0.00011920984820790181
+  },
+  {
+    "fold": 2,
+    "real_gap_mean": 1.8334109199713566e-06,
+    "generated_gap_mean": -6.784945071558468e-06,
+    "gap_abs_error": 8.618355991529825e-06
+  },
+  {
+    "fold": 3,
+    "real_gap_mean": 2.568729314589291e-06,
+    "generated_gap_mean": 0.0001861353375716135,
+    "gap_abs_error": 0.0001835666082570242
+  },
+  {
+    "fold": 4,
+    "real_gap_mean": 2.9329664812394185e-06,
+    "generated_gap_mean": -4.20280011894647e-05,
+    "gap_abs_error": 4.496096767070412e-05
+  },
+  {
+    "fold": 5,
+    "real_gap_mean": 1.9962676560680848e-06,
+    "generated_gap_mean": -4.1930503357434645e-05,
+    "gap_abs_error": 4.392677101350273e-05
+  }
+]
