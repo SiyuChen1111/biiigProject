@@ -1,0 +1,16 @@
+{
+  "total_loss_mean": 0.04102654168516677,
+  "total_loss_std": 0.032624212718518064,
+  "recon_loss_mean": 1.6597314459124698e-05,
+  "recon_loss_std": 2.044355706077152e-06,
+  "kl_loss_mean": 0.11468401903993466,
+  "kl_loss_std": 0.030074052386191027,
+  "feature_loss_mean": 8.474406169565211e-06,
+  "feature_loss_std": 2.599311692074811e-06,
+  "smoothness_loss_mean": 2.5616227582114775e-05,
+  "smoothness_loss_std": 3.3998268538813724e-06,
+  "roi_recon_loss_mean": 8.325807269868156e-06,
+  "roi_recon_loss_std": 2.4871682248500755e-06,
+  "label_loss_mean": 0.07051276322432376,
+  "label_loss_std": 0.06703637121549169
+}
