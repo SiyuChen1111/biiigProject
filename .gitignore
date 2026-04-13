@@ -1,5 +1,14 @@
-# Ignore temporary workspace data
+# TIER-style raw data location (local only, not versioned)
+data/raw/
 1_Data/
+
+# Generated outputs
+outputs/
+output/
+
+# Python build/runtime artifacts
+__pycache__/
+*.pyc
 
 # macOS files
 .DS_Store
