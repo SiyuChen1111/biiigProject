@@ -3,7 +3,6 @@ data/raw/
 1_Data/
 
 # Generated outputs
-outputs/
 output/
 
 # Python build/runtime artifacts
@@ -13,3 +12,4 @@ __pycache__/
 # macOS files
 .DS_Store
 ._*
+low-level_1.pdf
