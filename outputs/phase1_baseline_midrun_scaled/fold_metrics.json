@@ -1,0 +1,67 @@
+[
+  {
+    "balanced_accuracy": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "tn": 159,
+    "fp": 0,
+    "fn": 0,
+    "tp": 258,
+    "roc_auc": 1.0,
+    "fold": 1,
+    "n_test_subjects": 3,
+    "n_test_trials": 417
+  },
+  {
+    "balanced_accuracy": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "tn": 215,
+    "fp": 0,
+    "fn": 0,
+    "tp": 150,
+    "roc_auc": 1.0,
+    "fold": 2,
+    "n_test_subjects": 3,
+    "n_test_trials": 365
+  },
+  {
+    "balanced_accuracy": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "tn": 152,
+    "fp": 0,
+    "fn": 0,
+    "tp": 228,
+    "roc_auc": 1.0,
+    "fold": 3,
+    "n_test_subjects": 3,
+    "n_test_trials": 380
+  },
+  {
+    "balanced_accuracy": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "tn": 234,
+    "fp": 0,
+    "fn": 0,
+    "tp": 121,
+    "roc_auc": 1.0,
+    "fold": 4,
+    "n_test_subjects": 3,
+    "n_test_trials": 355
+  },
+  {
+    "balanced_accuracy": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "tn": 169,
+    "fp": 0,
+    "fn": 0,
+    "tp": 149,
+    "roc_auc": 1.0,
+    "fold": 5,
+    "n_test_subjects": 3,
+    "n_test_trials": 318
+  }
+]

@@ -1,0 +1,152 @@
+{
+  "sub-1117": {
+    "balanced_accuracy": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "tn": 44,
+    "fp": 0,
+    "fn": 0,
+    "tp": 70,
+    "roc_auc": 1.0
+  },
+  "sub-1131": {
+    "balanced_accuracy": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "tn": 68,
+    "fp": 0,
+    "fn": 0,
+    "tp": 100,
+    "roc_auc": 1.0
+  },
+  "sub-1160": {
+    "balanced_accuracy": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "tn": 47,
+    "fp": 0,
+    "fn": 0,
+    "tp": 88,
+    "roc_auc": 1.0
+  },
+  "sub-1118": {
+    "balanced_accuracy": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "tn": 58,
+    "fp": 0,
+    "fn": 0,
+    "tp": 24,
+    "roc_auc": 1.0
+  },
+  "sub-1132": {
+    "balanced_accuracy": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "tn": 88,
+    "fp": 0,
+    "fn": 0,
+    "tp": 62,
+    "roc_auc": 1.0
+  },
+  "sub-1164": {
+    "balanced_accuracy": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "tn": 69,
+    "fp": 0,
+    "fn": 0,
+    "tp": 64,
+    "roc_auc": 1.0
+  },
+  "sub-1120": {
+    "balanced_accuracy": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "tn": 53,
+    "fp": 0,
+    "fn": 0,
+    "tp": 59,
+    "roc_auc": 1.0
+  },
+  "sub-1135": {
+    "balanced_accuracy": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "tn": 51,
+    "fp": 0,
+    "fn": 0,
+    "tp": 51,
+    "roc_auc": 1.0
+  },
+  "sub-1167": {
+    "balanced_accuracy": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "tn": 48,
+    "fp": 0,
+    "fn": 0,
+    "tp": 118,
+    "roc_auc": 1.0
+  },
+  "sub-1124": {
+    "balanced_accuracy": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "tn": 61,
+    "fp": 0,
+    "fn": 0,
+    "tp": 39,
+    "roc_auc": 1.0
+  },
+  "sub-1136": {
+    "balanced_accuracy": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "tn": 69,
+    "fp": 0,
+    "fn": 0,
+    "tp": 55,
+    "roc_auc": 1.0
+  },
+  "sub-1169": {
+    "balanced_accuracy": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "tn": 104,
+    "fp": 0,
+    "fn": 0,
+    "tp": 27,
+    "roc_auc": 1.0
+  },
+  "sub-1126": {
+    "balanced_accuracy": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "tn": 52,
+    "fp": 0,
+    "fn": 0,
+    "tp": 10,
+    "roc_auc": 1.0
+  },
+  "sub-1151": {
+    "balanced_accuracy": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "tn": 58,
+    "fp": 0,
+    "fn": 0,
+    "tp": 71,
+    "roc_auc": 1.0
+  },
+  "sub-1172": {
+    "balanced_accuracy": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "tn": 59,
+    "fp": 0,
+    "fn": 0,
+    "tp": 68,
+    "roc_auc": 1.0
+  }
+}
