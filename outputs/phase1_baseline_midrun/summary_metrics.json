@@ -1,0 +1,11 @@
+{
+  "balanced_accuracy_mean": 0.5,
+  "balanced_accuracy_std": 0.0,
+  "precision_mean": 0.405620713102651,
+  "precision_std": 0.22621795381040194,
+  "recall_mean": 0.8,
+  "recall_std": 0.4000000000000001,
+  "roc_auc_mean": 0.6708569627864029,
+  "roc_auc_std": 0.20981833948081083,
+  "roc_auc_defined_folds": 5
+}
