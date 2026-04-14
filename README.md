@@ -78,7 +78,9 @@ Implemented and retained:
 
 Current interpretation:
 
-- the conditional generator can train and write simulated EEG arrays
+- the conditional generator can train and write **simulated EEG epoch arrays**
+- the model does **not** directly output a CPP value or a standalone CPP waveform; instead, it generates EEG conditioned on a CPP-like class label
+- CPP relevance is evaluated afterward by checking whether the generated EEG shows plausible structure in `CPz / CP1 / CP2`
 - the generated waveforms are not yet physiologically convincing
 - the strongest next step is ROI-focused conditional generation rather than immediate scaling to all channels
 
