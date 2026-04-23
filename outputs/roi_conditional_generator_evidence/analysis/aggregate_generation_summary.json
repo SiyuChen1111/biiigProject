@@ -1,0 +1,55 @@
+{
+  "n_folds_analyzed": 5,
+  "held_out_subject_count": 10,
+  "per_fold_metric_means": {
+    "waveform_correlation_mean": -0.0012270895752392902,
+    "peak_amplitude_error_mean_uv": 0.0007330571749548653,
+    "peak_latency_error_mean_seconds": 0.046274509803921546,
+    "baseline_mean_abs_error_mean_uv": 0.0010927954475191347,
+    "distribution_distance_mean": 635.373307881831
+  },
+  "per_fold_metric_stds": {
+    "waveform_correlation_mean": 0.06631246641452951,
+    "peak_amplitude_error_mean_uv": 0.00015522865703315652,
+    "peak_latency_error_mean_seconds": 0.011997692973159516,
+    "baseline_mean_abs_error_mean_uv": 0.0003587808002831356,
+    "distribution_distance_mean": 54.74140317367585
+  },
+  "positive": {
+    "positive_label_name": "positive",
+    "positive_waveform_correlation": -0.4303252043466584,
+    "positive_peak_amplitude_real_uv": 2.808699036904727e-06,
+    "positive_peak_amplitude_generated_uv": -0.0017146158497780561,
+    "positive_peak_amplitude_error_uv": 0.0017174245488149609,
+    "positive_peak_latency_real_seconds": -0.04313725490196074,
+    "positive_peak_latency_generated_seconds": 0.027450980392156876,
+    "positive_peak_latency_error_seconds": 0.07058823529411762,
+    "positive_baseline_mean_real_uv": 1.4527736347247355e-08,
+    "positive_baseline_mean_generated_uv": 0.0010351779637858272,
+    "positive_baseline_mean_abs_error_uv": 0.00103516343604948,
+    "positive_distribution_distance": 521.8747596060969,
+    "positive_real_trial_count": 604,
+    "positive_generated_trial_count": 40
+  },
+  "negative": {
+    "negative_label_name": "negative",
+    "negative_waveform_correlation": 0.4133107984388179,
+    "negative_peak_amplitude_real_uv": -4.0837726373865735e-06,
+    "negative_peak_amplitude_generated_uv": -0.0011612337548285723,
+    "negative_peak_amplitude_error_uv": 0.0011571499821911857,
+    "negative_peak_latency_real_seconds": -0.019607843137254943,
+    "negative_peak_latency_generated_seconds": 0.04313725490196074,
+    "negative_peak_latency_error_seconds": 0.06274509803921569,
+    "negative_baseline_mean_real_uv": -2.9799069028307867e-12,
+    "negative_baseline_mean_generated_uv": 0.001150427502579987,
+    "negative_baseline_mean_abs_error_uv": 0.001150427505559894,
+    "negative_distribution_distance": 748.8718561575652,
+    "negative_real_trial_count": 607,
+    "negative_generated_trial_count": 40
+  },
+  "waveform_correlation_mean": -0.00850720295392024,
+  "peak_amplitude_error_mean_uv": 0.0014372872655030733,
+  "peak_latency_error_mean_seconds": 0.06666666666666665,
+  "baseline_mean_abs_error_mean_uv": 0.001092795470804687,
+  "distribution_distance_mean": 635.373307881831
+}
