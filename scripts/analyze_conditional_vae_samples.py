@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+from datetime import datetime, timezone
 from dataclasses import dataclass
 from pathlib import Path
 import sys
@@ -16,7 +17,7 @@ import pandas as pd
 
 from src.data.data_kosciessa import DATASET_DIR, build_subject_trial_table, filter_subject_ids_with_paths
 from src.features.labels_cpp import CPP_ROI_CHANNELS, compute_cpp_features, fit_cpp_label_transform, threshold_cpp_scores, transform_cpp_scores
-from src.preprocessing.epoching import extract_response_locked_epochs
+from src.preprocessing.epoching import extract_response_locked_epochs, roi_only_epochs
 
 
 @dataclass(frozen=True)
@@ -51,10 +52,104 @@ class LabeledBlock:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Analyze conditional EEG VAE generated samples against real ROI ERPs.")
     parser.add_argument("--dataset-dir", type=Path, default=DATASET_DIR)
-    parser.add_argument("--vae-output-dir", type=Path, required=True)
-    parser.add_argument("--analysis-output-dir", type=Path, default=Path("outputs/phase1_conditional_vae_analysis"))
+    parser.add_argument(
+        "--vae-output-dir",
+        type=Path,
+        default=Path("outputs/phase1_conditional_vae_auxquick"),
+        help=(
+            "Directory containing fold_{k}/conditional_samples.npy. "
+            "This script is for the legacy/full-head conditional VAE path. Use the ROI-specific analysis entrypoint for ROI-only runs."
+        ),
+    )
+    parser.add_argument(
+        "--analysis-output-dir",
+        type=Path,
+        default=Path("outputs/phase1_conditional_vae_auxquick_analysis"),
+        help=(
+            "Directory to write analysis artifacts. "
+            "This script is for the legacy/full-head conditional VAE path. Use the ROI-specific analysis entrypoint for ROI-only runs."
+        ),
+    )
+    parser.add_argument(
+        "--output-root",
+        type=Path,
+        default=None,
+        help=(
+            "Optional legacy/full-head output root. Do not use ROI conditional generator contract roots here; "
+            "use scripts/analyze_roi_conditional_generator.py for ROI-only runs."
+        ),
+    )
     parser.add_argument("--max-subjects", type=int, default=5)
     return parser.parse_args()
+
+
+def _resolve_dirs(args: argparse.Namespace) -> tuple[Path, Path, Path | None]:
+    root: Path | None = None
+    if args.output_root is not None:
+        root = Path(args.output_root)
+        if root.name.startswith("roi_conditional_generator_"):
+            raise ValueError(
+                "analyze_conditional_vae_samples.py is for the legacy/full-head conditional VAE path. "
+                "Use scripts/analyze_roi_conditional_generator.py for ROI-only output roots."
+            )
+    vae_output_dir: Path | None = args.vae_output_dir
+    analysis_output_dir: Path | None = args.analysis_output_dir
+
+    if vae_output_dir is not None and (
+        vae_output_dir.name.startswith("roi_conditional_generator_")
+        or vae_output_dir.parent.name.startswith("roi_conditional_generator_")
+    ):
+        raise ValueError(
+            "analyze_conditional_vae_samples.py must not consume ROI-only training roots. "
+            "Use scripts/analyze_roi_conditional_generator.py instead."
+        )
+    if analysis_output_dir is not None and (
+        analysis_output_dir.name.startswith("roi_conditional_generator_")
+        or analysis_output_dir.parent.name.startswith("roi_conditional_generator_")
+    ):
+        raise ValueError(
+            "analyze_conditional_vae_samples.py must not write into ROI-only analysis roots. "
+            "Use scripts/analyze_roi_conditional_generator.py instead."
+        )
+
+    if vae_output_dir is None and root is not None:
+        vae_output_dir = root / "train"
+    if analysis_output_dir is None and root is not None:
+        analysis_output_dir = root / "analysis"
+    if analysis_output_dir is None and vae_output_dir is not None and vae_output_dir.name == "train":
+        candidate_root = vae_output_dir.parent
+        if candidate_root.name.startswith("roi_conditional_generator_"):
+            raise ValueError(
+                "analyze_conditional_vae_samples.py must not infer ROI-only analysis roots. "
+                "Use scripts/analyze_roi_conditional_generator.py instead."
+            )
+
+    if root is None and analysis_output_dir is not None and analysis_output_dir.name == "analysis":
+        candidate_root = analysis_output_dir.parent
+        if candidate_root.name.startswith("roi_conditional_generator_"):
+            raise ValueError(
+                "analyze_conditional_vae_samples.py must not operate on ROI-only analysis roots. "
+                "Use scripts/analyze_roi_conditional_generator.py instead."
+            )
+
+    if vae_output_dir is None or analysis_output_dir is None:
+        raise ValueError("Could not resolve vae-output-dir / analysis-output-dir. Provide --vae-output-dir or --output-root.")
+
+    return vae_output_dir, analysis_output_dir, root
+
+
+def _write_run_manifest(root: Path) -> None:
+    manifest_path = root / "run_manifest.json"
+    if manifest_path.exists():
+        return
+    manifest = {
+        "contract_id": "phase1_conditional_vae_v1",
+        "created_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "train_dir": "train",
+        "analysis_dir": "analysis",
+    }
+    with open(manifest_path, "w", encoding="utf-8") as f:
+        json.dump(manifest, f, indent=2)
 
 
 def _build_fold_assignment(subject_ids: list[str], n_folds: int = 5) -> list[list[str]]:
@@ -108,12 +203,6 @@ def _apply_label_transform(block: SubjectBlock, transform) -> LabeledBlock:
     )
 
 
-def _roi_average(epochs: np.ndarray, channel_names: list[str], roi_channels: list[str]) -> np.ndarray:
-    name_to_idx = {name: idx for idx, name in enumerate(channel_names)}
-    roi_idx = [name_to_idx[name] for name in roi_channels]
-    return epochs[:, roi_idx, :].mean(axis=1)
-
-
 def _plot_real_vs_generated(
     real_times: np.ndarray,
     gen_times: np.ndarray,
@@ -147,13 +236,20 @@ def _average_generated_by_label(samples: np.ndarray, samples_per_class: int) -> 
 
 def main() -> None:
     args = parse_args()
+    vae_output_dir, output_dir, contract_root = _resolve_dirs(args)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    if contract_root is not None:
+        contract_root.mkdir(parents=True, exist_ok=True)
+        _write_run_manifest(contract_root)
+        with open(output_dir / "analysis_run_config.json", "w", encoding="utf-8") as f:
+            json.dump({"argv": sys.argv, "args": vars(args)}, f, indent=2, default=str)
+
     subject_ids = filter_subject_ids_with_paths(dataset_dir=args.dataset_dir)[: args.max_subjects]
     subject_blocks = {subject_id: _load_subject_dataset(subject_id, args.dataset_dir) for subject_id in subject_ids}
     fold_assignments = _build_fold_assignment(subject_ids, n_folds=5)
 
     fold_summaries: list[dict[str, float | int]] = []
-    output_dir = args.analysis_output_dir
-    output_dir.mkdir(parents=True, exist_ok=True)
 
     for fold_idx, test_subjects in enumerate(fold_assignments, start=1):
         remaining_subjects = [subject_id for subject_id in subject_ids if subject_id not in test_subjects]
@@ -163,7 +259,7 @@ def main() -> None:
         transform = fit_cpp_label_transform(train_block.features)
         test_ready = _apply_label_transform(test_block, transform)
 
-        sample_path = args.vae_output_dir / f"fold_{fold_idx}" / "conditional_samples.npy"
+        sample_path = vae_output_dir / f"fold_{fold_idx}" / "conditional_samples.npy"
         if not sample_path.exists():
             continue
 
@@ -171,8 +267,8 @@ def main() -> None:
         if generated.shape[0] < 4:
             continue
 
-        real_roi = _roi_average(test_ready.epochs, test_ready.channel_names, CPP_ROI_CHANNELS)
-        gen_roi = _roi_average(generated.squeeze(-1), test_ready.channel_names, CPP_ROI_CHANNELS)
+        real_roi = roi_only_epochs(test_ready.epochs, test_ready.channel_names, CPP_ROI_CHANNELS).mean(axis=1)
+        gen_roi = roi_only_epochs(generated.squeeze(-1), test_ready.channel_names, CPP_ROI_CHANNELS).mean(axis=1)
         gen_times = np.linspace(float(test_ready.times[0]), float(test_ready.times[-1]), gen_roi.shape[-1], endpoint=True)
 
         real_pos = real_roi[test_ready.labels == 1].mean(axis=0)

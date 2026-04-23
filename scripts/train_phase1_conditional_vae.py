@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import tempfile
+from datetime import datetime, timezone
 from dataclasses import dataclass
 from pathlib import Path
 import sys
@@ -19,7 +20,7 @@ from torch.utils.data import DataLoader, TensorDataset
 
 from src.data.data_kosciessa import DATASET_DIR, build_subject_trial_table, filter_subject_ids_with_paths
 from src.models.conditional_eeg_vae import ConditionalEEGVAE
-from src.preprocessing.epoching import extract_response_locked_epochs
+from src.preprocessing.epoching import extract_response_locked_epochs, roi_channel_indices
 from src.features.labels_cpp import CPP_ROI_CHANNELS, compute_cpp_features, fit_cpp_label_transform, threshold_cpp_scores, transform_cpp_scores
 
 
@@ -55,7 +56,15 @@ class LabeledBlock:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Train conditional EEG VAE on phase-1 CPP-like labels.")
     parser.add_argument("--dataset-dir", type=Path, default=DATASET_DIR)
-    parser.add_argument("--output-dir", type=Path, default=Path("outputs/phase1_conditional_vae"))
+    parser.add_argument(
+        "--output-dir",
+        type=Path,
+        default=Path("outputs/phase1_conditional_vae_auxquick"),
+        help=(
+            "Training output directory for the legacy/full-head conditional VAE path. "
+            "Do not point this script at the ROI-only output contract roots."
+        ),
+    )
     parser.add_argument("--batch-size", type=int, default=16)
     parser.add_argument("--epochs", type=int, default=50)
     parser.add_argument("--learning-rate", type=float, default=1e-3)
@@ -69,6 +78,31 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--max-subjects", type=int, default=None)
     parser.add_argument("--device", type=str, default="cuda" if torch.cuda.is_available() else "cpu")
     return parser.parse_args()
+
+
+def _maybe_resolve_contract_root(train_output_dir: Path) -> Path | None:
+    if train_output_dir.name.startswith("roi_conditional_generator_") or (
+        train_output_dir.name == "train" and train_output_dir.parent.name.startswith("roi_conditional_generator_")
+    ):
+        raise ValueError(
+            "train_phase1_conditional_vae.py is the legacy/full-head conditional VAE entrypoint and must not write into "
+            "the ROI-only output contract roots. Use scripts/train_roi_conditional_generator.py for ROI runs instead."
+        )
+    return None
+
+
+def _write_run_manifest(root: Path, train_dir: Path) -> None:
+    manifest_path = root / "run_manifest.json"
+    if manifest_path.exists():
+        return
+    manifest = {
+        "contract_id": "phase1_conditional_vae_v1",
+        "created_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "train_dir": str(train_dir.relative_to(root)),
+        "analysis_dir": "analysis",
+    }
+    with open(manifest_path, "w", encoding="utf-8") as f:
+        json.dump(manifest, f, indent=2)
 
 
 def _build_fold_assignment(subject_ids: list[str], n_folds: int = 5) -> list[list[str]]:
@@ -253,6 +287,13 @@ def main() -> None:
     args = parse_args()
     output_dir = args.output_dir
     output_dir.mkdir(parents=True, exist_ok=True)
+
+    contract_root = _maybe_resolve_contract_root(output_dir)
+    if contract_root is not None:
+        contract_root.mkdir(parents=True, exist_ok=True)
+        _write_run_manifest(root=contract_root, train_dir=output_dir)
+        with open(output_dir / "train_run_config.json", "w", encoding="utf-8") as f:
+            json.dump({"argv": sys.argv, "args": vars(args)}, f, indent=2, default=str)
     device = torch.device(args.device)
 
     subject_ids = filter_subject_ids_with_paths(dataset_dir=args.dataset_dir)
@@ -267,8 +308,7 @@ def main() -> None:
     fold_losses: list[dict[str, float | int]] = []
 
     reference_subject = next(iter(subject_blocks.values()))
-    roi_name_to_idx = {name: idx for idx, name in enumerate(reference_subject.channel_names)}
-    roi_indices = [roi_name_to_idx[name] for name in CPP_ROI_CHANNELS]
+    roi_indices = roi_channel_indices(reference_subject.channel_names, CPP_ROI_CHANNELS)
     sample_times = reference_subject.times
 
     for fold_idx, test_subjects in enumerate(fold_assignments, start=1):
