@@ -5,6 +5,13 @@ data/raw/
 # Generated outputs
 output/
 
+# Intermediate ROI morphology-loss verification roots (local scratch, not retained)
+outputs/roi_conditional_generator_cpp_loss_*/
+
+# Generic scratch checkpoint/cache patterns
+outputs/**/checkpoints/
+outputs/**/*.pt
+
 # Python build/runtime artifacts
 __pycache__/
 *.pyc

@@ -72,6 +72,26 @@ A conditional VAE-based generator is now implemented through:
 
 This model is conditioned on the phase-1 high-vs-low CPP-like labels and can generate simulated EEG epoch arrays.
 
+### 1.6 ROI-only conditional generator workflow (canonical next-step path)
+
+A dedicated ROI-only conditional generator workflow is now implemented as the main path for the next stage of generation work.
+
+Entry points:
+
+- `scripts/train_roi_conditional_generator.py`
+- `scripts/analyze_roi_conditional_generator.py`
+
+This workflow narrows generation to the CPP ROI channels (`CPz`, `CP1`, `CP2`) so that waveform plausibility can be judged directly against real ROI ERPs without spending capacity on all 60 channels.
+
+The workflow writes to a stable retained output contract, with the canonical output roots:
+
+- `outputs/roi_conditional_generator_smoke/`
+- `outputs/roi_conditional_generator_evidence/`
+
+The directory layout and filenames under those roots are specified in:
+
+- `docs/protocol/roi-conditional-generator-output-contract.md`
+
 ---
 
 ## 2. What the current experiments show
@@ -179,9 +199,7 @@ At this point, the project has moved beyond pure implementation uncertainty.
 
 The most defensible next modeling step is **not** to keep scaling the full 60-channel generator immediately.
 
-The current recommendation is:
-
-> Build a ROI-focused conditional generator that targets `CPz`, `CP1`, and `CP2` directly.
+The canonical next step is now to use the ROI-only conditional generator workflow that already exists in `scripts/`.
 
 Why this is the best next step:
 
@@ -191,8 +209,24 @@ Why this is the best next step:
 
 This next step should be treated as a scientific narrowing of scope, not as a retreat.
 
+Practical next action (smoke run):
+
+1. Train a quick ROI-only run into the smoke root.
+2. Run the matching analysis, also within the same smoke root.
+
+Example commands (from repo root):
+
+```bash
+python3 scripts/train_roi_conditional_generator.py --output-dir outputs/roi_conditional_generator_smoke/train
+python3 scripts/analyze_roi_conditional_generator.py --output-root outputs/roi_conditional_generator_smoke
+```
+
+When those smoke outputs look stable enough for retention, repeat the same workflow under:
+
+- `outputs/roi_conditional_generator_evidence/`
+
 ---
 
 ## 7. One-paragraph conclusion
 
-The project is now in a productive middle stage. The discriminative CPP-like pipeline is complete and reproducible, and it has established a stable subject-generalizable hand-crafted CPP-like score. The external-label phase-2 tasks tried so far have not yet produced convincing cross-subject signal. A conditional EEG generator is now implemented, but it still does not generate physiologically credible CPP-like waveforms. The best next move is therefore to stop broadening the task space and instead focus the generator on the CPP ROI itself, where physiological plausibility can be judged more directly and with less representational burden.
+The project is now in a productive middle stage. The discriminative CPP-like pipeline is complete and reproducible, and it has established a stable subject-generalizable hand-crafted CPP-like score. The external-label phase-2 tasks tried so far have not yet produced convincing cross-subject signal. A conditional EEG generator is now implemented, but it still does not generate physiologically credible CPP-like waveforms. The next move is therefore to stop broadening the task space and focus generation on the CPP ROI itself using the ROI-only training and analysis entry points, with outputs written to the stable smoke and evidence roots defined in the ROI generator output contract.

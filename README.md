@@ -76,6 +76,22 @@ Implemented and retained:
 - `scripts/analyze_conditional_vae_samples.py`
 - `src/models/conditional_eeg_vae.py`
 
+### ROI-only conditional generation (current canonical generator path)
+
+Implemented and retained:
+
+- `scripts/train_roi_conditional_generator.py`
+- `scripts/analyze_roi_conditional_generator.py`
+- `scripts/plot_cpp_style_roi_figure.py`
+- `src/models/cpp_losses.py`
+
+Current interpretation:
+
+- this is now the **canonical** conditional-generation workflow for CPP-related follow-up work
+- it keeps the generator on the ROI (`CPz / CP1 / CP2`) rather than trying to scale immediately to all channels
+- it includes morphology-aware CPP losses, smoke/evidence output roots, and publication-style plotting utilities
+- the generated waveforms are still not yet physiologically convincing enough to claim successful CPP generation
+
 Current interpretation:
 
 - the conditional generator can train and write **simulated EEG epoch arrays**
@@ -92,6 +108,9 @@ Current interpretation:
 - `scripts/train_phase2_rt_fastslow.py`
 - `scripts/train_phase1_conditional_vae.py`
 - `scripts/analyze_conditional_vae_samples.py`
+- `scripts/train_roi_conditional_generator.py`
+- `scripts/analyze_roi_conditional_generator.py`
+- `scripts/plot_cpp_style_roi_figure.py`
 
 ## One-click-style master script
 
@@ -110,6 +129,11 @@ python3 scripts/train_phase1_eegnet.py --max-subjects 15 --epochs 40 --output-di
 python3 scripts/baseline_phase1_cpp_features.py --max-subjects 15 --output-dir outputs/phase1_baseline_midrun
 python3 scripts/train_phase2_cue_dimensionality.py --max-subjects 10 --epochs 10 --output-dir outputs/phase2_quickcheck
 python3 scripts/train_phase2_rt_fastslow.py --max-subjects 5 --epochs 2 --output-dir outputs/phase2_rt_smoketest
+
+# Canonical ROI-only conditional generator workflow
+python3 scripts/train_roi_conditional_generator.py --output-dir outputs/roi_conditional_generator_smoke/train --max-subjects 10 --epochs 3
+python3 scripts/analyze_roi_conditional_generator.py --output-root outputs/roi_conditional_generator_smoke
+python3 scripts/plot_cpp_style_roi_figure.py --output-root outputs/roi_conditional_generator_smoke
 ```
 
 ## TIER adaptation note
