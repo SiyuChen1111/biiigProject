@@ -1,0 +1,72 @@
+[
+  {
+    "total_loss": 0.3058335676154532,
+    "recon_loss": 0.0002615188859635964,
+    "kl_loss": 0.010634024472286304,
+    "feature_loss": 0.0002478233238636878,
+    "smoothness_loss": 0.0004470680497534987,
+    "cpp_waveform_loss": 4.402966159331198e-05,
+    "cpp_peak_loss": 1.4972560443816797e-05,
+    "cpp_difference_loss": 4.422503934620181e-06,
+    "label_loss": 0.6083203554153442,
+    "fold": 1,
+    "n_test_subjects": 1,
+    "n_test_trials": 142
+  },
+  {
+    "total_loss": 0.2961851477893629,
+    "recon_loss": 0.00024837363550129035,
+    "kl_loss": 0.010552269344528516,
+    "feature_loss": 0.00013312929513631389,
+    "smoothness_loss": 0.00042411074003515143,
+    "cpp_waveform_loss": 4.3586552298317356e-05,
+    "cpp_peak_loss": 6.228225606719206e-06,
+    "cpp_difference_loss": 7.052795808704104e-06,
+    "label_loss": 0.589304506778717,
+    "fold": 2,
+    "n_test_subjects": 1,
+    "n_test_trials": 119
+  },
+  {
+    "total_loss": 0.29185966980445255,
+    "recon_loss": 0.00027714514206828814,
+    "kl_loss": 0.014077230267936275,
+    "feature_loss": 0.0003206341526016504,
+    "smoothness_loss": 0.00045443664809378487,
+    "cpp_waveform_loss": 5.053582728058765e-05,
+    "cpp_peak_loss": 1.562547326795452e-05,
+    "cpp_difference_loss": 5.813627467432525e-06,
+    "label_loss": 0.5794891232535953,
+    "fold": 3,
+    "n_test_subjects": 1,
+    "n_test_trials": 162
+  },
+  {
+    "total_loss": 0.283763191644571,
+    "recon_loss": 0.00027886899496319103,
+    "kl_loss": 0.009533409577082185,
+    "feature_loss": 0.00018937381537398323,
+    "smoothness_loss": 0.0004540557976510814,
+    "cpp_waveform_loss": 4.6242037248756626e-05,
+    "cpp_peak_loss": 1.6598250808516133e-05,
+    "cpp_difference_loss": 4.443427314981818e-06,
+    "label_loss": 0.564474435413585,
+    "fold": 4,
+    "n_test_subjects": 1,
+    "n_test_trials": 133
+  },
+  {
+    "total_loss": 0.3126728406774613,
+    "recon_loss": 0.00033111832453869283,
+    "kl_loss": 0.008805319400770324,
+    "feature_loss": 0.00027320707106680075,
+    "smoothness_loss": 0.0005436524619913793,
+    "cpp_waveform_loss": 6.63805515484585e-05,
+    "cpp_peak_loss": 2.3507530451232534e-05,
+    "cpp_difference_loss": 7.816939614713192e-06,
+    "label_loss": 0.6220953336783818,
+    "fold": 5,
+    "n_test_subjects": 1,
+    "n_test_trials": 105
+  }
+]

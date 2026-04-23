@@ -1,0 +1,20 @@
+{
+  "total_loss_mean": 0.2980628835062602,
+  "total_loss_std": 0.010201189333222503,
+  "recon_loss_mean": 0.00027940499660701173,
+  "recon_loss_std": 2.815145059171953e-05,
+  "kl_loss_mean": 0.010720450612520721,
+  "kl_loss_std": 0.0018100009972188739,
+  "feature_loss_mean": 0.0002328335316084872,
+  "feature_loss_std": 6.541153921551431e-05,
+  "smoothness_loss_mean": 0.00046466473950497917,
+  "smoothness_loss_std": 4.1013398220514095e-05,
+  "cpp_waveform_loss_mean": 5.015492599388643e-05,
+  "cpp_waveform_loss_std": 8.478078859514632e-06,
+  "cpp_peak_loss_mean": 1.538640811564784e-05,
+  "cpp_peak_loss_std": 5.504941772828567e-06,
+  "cpp_difference_loss_mean": 5.909858828090364e-06,
+  "cpp_difference_loss_std": 1.3649299253003412e-06,
+  "label_loss_mean": 0.5927367509079247,
+  "label_loss_std": 0.02044902700406684
+}

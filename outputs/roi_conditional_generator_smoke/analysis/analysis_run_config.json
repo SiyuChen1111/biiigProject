@@ -1,0 +1,14 @@
+{
+  "argv": [
+    "scripts/analyze_roi_conditional_generator.py",
+    "--output-root",
+    "outputs/roi_conditional_generator_smoke"
+  ],
+  "args": {
+    "output_root": "outputs/roi_conditional_generator_smoke",
+    "train_output_dir": "outputs/roi_conditional_generator_smoke/train",
+    "analysis_output_dir": "outputs/roi_conditional_generator_smoke/analysis",
+    "dataset_dir": "1_Data/CPP_low-level-2_Kosciessa_et_al_2021",
+    "max_subjects": 5
+  }
+}

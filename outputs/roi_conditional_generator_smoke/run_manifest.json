@@ -1,0 +1,6 @@
+{
+  "contract_id": "roi_conditional_generator_v1",
+  "created_utc": "2026-04-22T12:56:17Z",
+  "train_dir": "train",
+  "analysis_dir": "analysis"
+}
