@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 
 from src.data.data_kosciessa import DATASET_DIR, get_subject_paths
+from src.features.labels_cpp import CPP_ROI_CHANNELS
 
 
 PHASE1_EEG_CHANNEL_COUNT = 60
@@ -26,6 +27,94 @@ class EpochedSubjectData:
     trial_table: pd.DataFrame
     original_sfreq: float
     target_sfreq: float
+
+
+@dataclass(frozen=True)
+class RoiEpochedSubjectData:
+    """ROI-only view of response-locked epochs.
+
+    Contract:
+    - epochs: (trials, 3, samples)
+    - channel_names: exactly CPP_ROI_CHANNELS (order-preserving)
+    - times and trial_table are preserved from the full-head epoched input
+    """
+
+    subject_id: str
+    epochs: np.ndarray
+    times: np.ndarray
+    channel_names: list[str]
+    trial_table: pd.DataFrame
+    original_sfreq: float
+    target_sfreq: float
+
+
+def roi_channel_indices(channel_names: list[str], roi_channels: list[str] | None = None) -> list[int]:
+    """Return indices for ROI channels in the requested order.
+
+    Raises:
+        ValueError: if any ROI channel is missing.
+    """
+
+    roi = roi_channels or CPP_ROI_CHANNELS
+    index_by_name = {name: idx for idx, name in enumerate(channel_names)}
+    missing = [name for name in roi if name not in index_by_name]
+    if missing:
+        raise ValueError(
+            "Missing ROI channels: "
+            + ", ".join(missing)
+            + f". Available channels: {channel_names}"
+        )
+    return [index_by_name[name] for name in roi]
+
+
+def roi_only_epochs(
+    epochs: np.ndarray,
+    channel_names: list[str],
+    roi_channels: list[str] | None = None,
+) -> np.ndarray:
+    """Select ROI-only epochs from full-head epochs.
+
+    Args:
+        epochs: (trials, channels, samples)
+        channel_names: names aligned to the channel axis.
+        roi_channels: optional override; defaults to CPP_ROI_CHANNELS.
+
+    Returns:
+        ROI-only epochs with shape (trials, len(roi_channels), samples)
+        and channel order matching roi_channels.
+    """
+
+    if epochs.ndim != 3:
+        raise ValueError(f"Expected epochs with 3 dimensions (trials, channels, samples); got shape {epochs.shape}.")
+
+    roi = roi_channels or CPP_ROI_CHANNELS
+    roi_idx = roi_channel_indices(channel_names=channel_names, roi_channels=roi)
+    roi_epochs = epochs[:, roi_idx, :]
+    if roi_epochs.shape[1] != len(roi):
+        raise ValueError(
+            f"ROI selection produced {roi_epochs.shape[1]} channels; expected {len(roi)}. "
+            f"ROI channels={roi}"
+        )
+    return roi_epochs
+
+
+def to_roi_epoched_subject_data(
+    epoched: EpochedSubjectData,
+    roi_channels: list[str] | None = None,
+) -> RoiEpochedSubjectData:
+    """Convert a full-head EpochedSubjectData into an ROI-only contract."""
+
+    roi = roi_channels or CPP_ROI_CHANNELS
+    roi_epochs = roi_only_epochs(epochs=epoched.epochs, channel_names=epoched.channel_names, roi_channels=roi)
+    return RoiEpochedSubjectData(
+        subject_id=epoched.subject_id,
+        epochs=roi_epochs.astype(np.float32, copy=False),
+        times=epoched.times,
+        channel_names=list(roi),
+        trial_table=epoched.trial_table,
+        original_sfreq=epoched.original_sfreq,
+        target_sfreq=epoched.target_sfreq,
+    )
 
 
 def load_raw_eeg(subject_id: str, dataset_dir: Path = DATASET_DIR) -> mne.io.BaseRaw:
