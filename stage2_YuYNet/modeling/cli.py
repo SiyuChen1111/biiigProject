@@ -1,0 +1,39 @@
+from __future__ import annotations
+
+import argparse
+from pathlib import Path
+
+from .analysis import run_core_latent_analysis
+from .config import AnalysisConfig, DataContractConfig, TrainingConfig, default_evidence_dir
+from .controls import run_minimal_controls
+from .data_contract import validate_stage2_dataset
+from .train import train_stage2_pipeline
+
+
+def main() -> None:
+    """Command-line entry point for the stage2 pipeline."""
+    parser = argparse.ArgumentParser(description="Stage2 CPP latent-dynamics baseline pipeline")
+    parser.add_argument("command", choices=("validate", "train", "analyze", "controls"))
+    parser.add_argument("--dataset-dir", type=Path, required=True)
+    parser.add_argument("--output-dir", type=Path)
+    parser.add_argument("--latent-path", type=Path)
+    args = parser.parse_args()
+
+    output_dir = args.output_dir or default_evidence_dir(args.dataset_dir.parent)
+
+    if args.command == "validate":
+        validate_stage2_dataset(args.dataset_dir, output_dir / "stage1", DataContractConfig())
+    elif args.command == "train":
+        train_stage2_pipeline(args.dataset_dir, output_dir / "stage2", TrainingConfig())
+    elif args.command == "analyze":
+        if args.latent_path is None:
+            raise SystemExit("--latent-path is required for analyze")
+        run_core_latent_analysis(args.latent_path, output_dir / "stage3", AnalysisConfig())
+    elif args.command == "controls":
+        if args.latent_path is None:
+            raise SystemExit("--latent-path is required for controls")
+        run_minimal_controls(args.latent_path, output_dir / "stage4")
+
+
+if __name__ == "__main__":
+    main()
