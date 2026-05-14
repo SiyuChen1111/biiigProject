@@ -2,21 +2,19 @@ import tempfile
 import unittest
 from typing import Any, Dict
 from pathlib import Path
-import sys
 
 import numpy as np
 import pandas as pd
-
-ROOT = Path(__file__).resolve().parents[1]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
 
 from modeling.analysis import run_core_latent_analysis
 from modeling.config import AnalysisConfig, DataContractConfig, TrainingConfig
 from modeling.controls import run_minimal_controls
 from modeling.data_contract import validate_stage2_dataset
 from modeling.dataset import build_pre_response_mask
+from modeling.prepare_contract import audit_preliminary_stage2_dataset
+from modeling.preparation import prepare_stage2_dataset_package
 from modeling.train import train_stage2_pipeline
+from scipy.io import savemat
 
 
 def _make_synthetic_dataset(root: Path) -> Path:
@@ -50,6 +48,37 @@ def _make_synthetic_dataset(root: Path) -> Path:
     return dataset_dir
 
 
+def _make_preparation_sources(root: Path) -> Path:
+    script_root = root / "script_pre_EEG"
+    (script_root / "Kosciessa_et_al_2021" / "temp_data").mkdir(parents=True, exist_ok=True)
+    (script_root / "van_et_al_2019" / "temp_data").mkdir(parents=True, exist_ok=True)
+
+    kosciessa = np.arange(4 * 3 * 8, dtype=np.float32).reshape(4, 3, 8)
+    savemat(script_root / "Kosciessa_et_al_2021" / "temp_data" / "resp_locked_erp.mat", {"resp_locked_erp": kosciessa})
+
+    pd.DataFrame(
+        {
+            "subj_idx": ["ACC001", "ACC001"],
+            "mode": ["mem", "mem"],
+            "type": ["resp", "resp"],
+            "rt": [500, 650],
+            "acc": [1, 0],
+            "item_1": ["a", "b"],
+            "item_2": ["c", "d"],
+            "item_cue": ["a", "d"],
+        }
+    ).to_csv(script_root / "van_et_al_2019" / "temp_data" / "data_beh_memory.csv", index=False)
+    pd.DataFrame(
+        {
+            "0": [0.1, 0.2],
+            "1": [0.3, 0.4],
+            "2": [0.5, 0.6],
+            "subject_id": ["ACC001", "ACC001"],
+        }
+    ).to_csv(script_root / "van_et_al_2019" / "temp_data" / "data_resp_locked_memory.csv", index=False)
+    return script_root
+
+
 class Stage2ModelingTests(unittest.TestCase):
     def test_mask_respects_pre_response_window(self):
         times_ms = np.array([-200, 0, 100, 200, 300], dtype=np.float32)
@@ -62,6 +91,35 @@ class Stage2ModelingTests(unittest.TestCase):
             dataset_dir = _make_synthetic_dataset(Path(tmp))
             report: Dict[str, Any] = validate_stage2_dataset(dataset_dir, Path(tmp) / "reports", DataContractConfig())
             self.assertTrue(report["passed"])
+
+    def test_prepare_generates_preliminary_package_and_blocking_audit(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source_root = _make_preparation_sources(root)
+            dataset_dir = root / "dataset"
+            prepare_report = prepare_stage2_dataset_package(dataset_dir, root / "evidence" / "stage0", source_root=source_root)
+            audit_report = audit_preliminary_stage2_dataset(dataset_dir, root / "evidence" / "stage0")
+
+            self.assertTrue(prepare_report["passed"])
+            self.assertFalse(prepare_report["formal_training_ready"])
+            self.assertTrue((dataset_dir / "eeg_cpp_trials.npy").exists())
+            self.assertTrue((dataset_dir / "metadata.csv").exists())
+            self.assertTrue((dataset_dir / "times_ms.npy").exists())
+            self.assertTrue((dataset_dir / "channel_names.txt").exists())
+            self.assertTrue((dataset_dir / "preprocessing_notes.md").exists())
+
+            eeg = np.load(dataset_dir / "eeg_cpp_trials.npy")
+            times_ms = np.load(dataset_dir / "times_ms.npy")
+            metadata = pd.read_csv(dataset_dir / "metadata.csv")
+            channels = (dataset_dir / "channel_names.txt").read_text(encoding="utf-8").strip().splitlines()
+
+            self.assertEqual(eeg.shape, (4, 8, 3))
+            self.assertEqual(len(times_ms), eeg.shape[1])
+            self.assertEqual(channels, ["CP1", "CP2", "CPz"])
+            self.assertNotIn("response_hand", metadata.columns)
+            self.assertIn("missing_required_fields", metadata.columns)
+            self.assertFalse(audit_report["formal_training_ready"])
+            self.assertIn("response_hand", audit_report["missing_required_metadata_columns"])
 
     def test_training_analysis_and_controls_run_end_to_end(self):
         with tempfile.TemporaryDirectory() as tmp:

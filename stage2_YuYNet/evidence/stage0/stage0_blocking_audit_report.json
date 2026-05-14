@@ -1,0 +1,36 @@
+{
+  "available_metadata_columns": [
+    "trial_id",
+    "source_dataset",
+    "alignment",
+    "n_channels",
+    "time_axis_status",
+    "confirmed_fields",
+    "missing_required_fields",
+    "formal_training_blocker"
+  ],
+  "blocking_issues": [
+    "Current repository-prepared package is response-locked, not stimulus-locked.",
+    "Current repository-prepared package lacks the full required formal metadata contract."
+  ],
+  "channel_order_matches_contract": true,
+  "formal_training_ready": false,
+  "missing_required_metadata_columns": [
+    "subject_id",
+    "condition",
+    "evidence_strength",
+    "choice",
+    "correctness",
+    "RT_ms",
+    "response_hand",
+    "artifact_rejection_flag"
+  ],
+  "package_level": "preliminary_only",
+  "passed": true,
+  "shape_summary": {
+    "n_channels": 3,
+    "n_timepoints": 308,
+    "n_trials": 255
+  },
+  "times_match": true
+}

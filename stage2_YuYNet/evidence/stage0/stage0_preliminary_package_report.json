@@ -1,0 +1,114 @@
+{
+  "alignment": "response_locked",
+  "blocking_issues": [
+    {
+      "field": "response_hand",
+      "reason": "Not confirmed anywhere in the repository materials used to build the preliminary package."
+    },
+    {
+      "field": "condition",
+      "reason": "Not confirmed for the chosen Kosciessa EEG tensor in the repository materials."
+    },
+    {
+      "field": "evidence_strength",
+      "reason": "No repository field can be safely promoted to formal evidence strength for the chosen EEG tensor."
+    },
+    {
+      "field": "choice",
+      "reason": "Formal trial-wise choice labels are not confirmed for the chosen EEG tensor."
+    },
+    {
+      "field": "stimulus_locked_input",
+      "reason": "The available Kosciessa tensor in the repository is response-locked rather than stimulus-locked."
+    }
+  ],
+  "channel_order": [
+    "CP1",
+    "CP2",
+    "CPz"
+  ],
+  "dataset_dir": "/Users/siyu/Documents/GitHub/biiigProject/stage2_YuYNet/dataset",
+  "formal_training_ready": false,
+  "generated_files": {
+    "channel_names.txt": "/Users/siyu/Documents/GitHub/biiigProject/stage2_YuYNet/dataset/channel_names.txt",
+    "eeg_cpp_trials.npy": "/Users/siyu/Documents/GitHub/biiigProject/stage2_YuYNet/dataset/eeg_cpp_trials.npy",
+    "metadata.csv": "/Users/siyu/Documents/GitHub/biiigProject/stage2_YuYNet/dataset/metadata.csv",
+    "preprocessing_notes.md": "/Users/siyu/Documents/GitHub/biiigProject/stage2_YuYNet/dataset/preprocessing_notes.md",
+    "times_ms.npy": "/Users/siyu/Documents/GitHub/biiigProject/stage2_YuYNet/dataset/times_ms.npy"
+  },
+  "main_source_dataset": "Kosciessa_et_al_2021",
+  "main_source_path": "/Users/siyu/Documents/GitHub/biiigProject/stage2_YuYNet/script_pre_EEG/Kosciessa_et_al_2021/temp_data/resp_locked_erp.mat",
+  "package_level": "preliminary_only",
+  "passed": true,
+  "reference_audit": {
+    "van_et_al_2019_alignment": "response_locked",
+    "van_et_al_2019_behavior_columns": [
+      "Unnamed: 0",
+      "subj_idx",
+      "mode",
+      "type",
+      "rt",
+      "acc",
+      "item_1",
+      "item_2",
+      "item_cue"
+    ],
+    "van_et_al_2019_behavior_rows": 7186,
+    "van_et_al_2019_channel_resolution": "single_cpp_waveform_per_trial",
+    "van_et_al_2019_eeg_rows": 7186,
+    "van_et_al_2019_waveform_points": 500
+  },
+  "reference_only_source_paths": [
+    "/Users/siyu/Documents/GitHub/biiigProject/stage2_YuYNet/script_pre_EEG/van_et_al_2019/temp_data/data_beh_memory.csv",
+    "/Users/siyu/Documents/GitHub/biiigProject/stage2_YuYNet/script_pre_EEG/van_et_al_2019/temp_data/data_resp_locked_memory.csv"
+  ],
+  "required_field_status": {
+    "RT_ms": {
+      "available_in_preliminary_metadata": false,
+      "status": "missing"
+    },
+    "artifact_rejection_flag": {
+      "available_in_preliminary_metadata": false,
+      "status": "missing"
+    },
+    "choice": {
+      "available_in_preliminary_metadata": false,
+      "status": "missing"
+    },
+    "condition": {
+      "available_in_preliminary_metadata": false,
+      "status": "missing"
+    },
+    "correctness": {
+      "available_in_preliminary_metadata": false,
+      "status": "missing"
+    },
+    "evidence_strength": {
+      "available_in_preliminary_metadata": false,
+      "status": "missing"
+    },
+    "response_hand": {
+      "available_in_preliminary_metadata": false,
+      "status": "missing"
+    },
+    "subject_id": {
+      "available_in_preliminary_metadata": false,
+      "status": "missing"
+    },
+    "trial_id": {
+      "available_in_preliminary_metadata": true,
+      "status": "confirmed"
+    }
+  },
+  "shape_summary": {
+    "n_channels": 3,
+    "n_timepoints": 308,
+    "n_trials": 255
+  },
+  "times_ms_summary": {
+    "end_ms": 200.0,
+    "inference_basis": "Notebook plotting window implies RESP_PRE=-1.0 s and RESP_POST=0.2 s.",
+    "n_timepoints": 308,
+    "start_ms": -1000.0
+  }
+}

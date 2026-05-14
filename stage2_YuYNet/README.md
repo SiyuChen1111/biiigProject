@@ -58,6 +58,14 @@ dataset/
 └── preprocessing_notes.md
 ```
 
+For repository-only preparation of a preliminary package:
+
+```bash
+python -m modeling.cli prepare --dataset-dir dataset --output-dir evidence
+```
+
+This writes a preliminary package plus a blocking audit. It does not mark the dataset as formally training-ready.
+
 ## How to run
 
 From `stage2_YuYNet/`:
