@@ -144,3 +144,27 @@ The main goal is to build a neural-network model for CPP-related single-trial EE
 
 ### Final goal
 - Build a response-locked CPP latent-dynamics model that reconstructs CPP shape and supports interpretable latent-space analysis of response-proximal neural dynamics.
+
+## 2026-05-15 — Stage 3 PCA formalization and pooled significance check
+
+### What changed
+- Kept the retained best model artifacts under `stage2_YuYNet/evidence/best_cpp_model/`.
+- Split latent analysis outputs into two retained folders:
+  - `stage3/` for the conservative test-split PCA / CPP check
+  - `stage3_pooled/` for pooled train/val/test significance analysis
+- Added pooled-trial bootstrap and permutation testing for window-level PCA differences.
+- Updated the best-model README to document the formal PCA outputs and the retained-model analysis layout.
+
+### What the formal outputs now mean
+- `stage3/` is the independent sanity check on `latents_test.npz`.
+- `stage3_pooled/` is the sample-size stability analysis across all 255 trials.
+- The pooled report currently shows 4 of 6 primary window-comparison tests statistically supported after FDR correction.
+
+### Cleanup policy for this stage
+- Keep the best model checkpoint, sweep summary, latent exports, and finalized PCA figures/tables.
+- Keep both `stage3/` and `stage3_pooled/` because they support different interpretations.
+- Treat temporary runner artifacts, hidden OS files, and any non-retained sweep outputs as disposable.
+
+### Operational note
+- Future PCA reads should default to `stage3_pooled/` when the question is sample-size stability.
+- Use `stage3/` when the question is conservative test-split behavior or model sanity checking.

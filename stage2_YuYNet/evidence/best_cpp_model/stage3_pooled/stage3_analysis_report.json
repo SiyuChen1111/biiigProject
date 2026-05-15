@@ -1,0 +1,105 @@
+{
+  "analysis_scope": "pooled_train_val_test",
+  "analysis_split": "latents_train.npz,latents_val.npz,latents_test.npz",
+  "best_model_summary": {
+    "amp_ratio": 0.9911271929740906,
+    "checkpoint_path": "/Users/siyu/Documents/GitHub/biiigProject/stage2_YuYNet/evidence/sweep_cpp_prior/long_002/best_model.pt",
+    "corr": 0.9898958621102802,
+    "late_err": 0.016760528087615967,
+    "mse": 0.0004376351134851575,
+    "param_hidden_dim": 32,
+    "param_lambda_cpp_mean_alignment": 0.05,
+    "param_lambda_cpp_prior": 0.05,
+    "param_lambda_late_amplitude": 4.0,
+    "param_lambda_slope_floor": 0.5,
+    "param_projection_dim": 16,
+    "param_slope_floor_ratio": 0.5,
+    "run_id": "long_002",
+    "slope_corr": 0.9719325117206082,
+    "source_short_run": "run_011"
+  },
+  "contamination_warning": "The -50 to 100 ms window is response/motor contaminated and is not interpreted as pure evidence accumulation.",
+  "cpp_data_quality": {
+    "aligned_trials": 255,
+    "cpp_nonfinite_values_imputed": 9548,
+    "raw_eeg_nonfinite_values_imputed": 28644
+  },
+  "cpp_mapping_available": true,
+  "cpp_mapping_warning": null,
+  "explained_variance_ratio": [
+    0.4951633869228336,
+    0.2442780520834836,
+    0.12533216396046634
+  ],
+  "generated_files": [
+    "stage3_time_resolved_pca.csv",
+    "stage3_window_pca_summary.csv",
+    "stage3_global_pca_scores.npz",
+    "stage3_pc_explained_over_time.png",
+    "stage3_effective_dimensionality_over_time.png",
+    "stage3_windowed_pca_bar.png",
+    "stage3_window_pc_spectrum.png",
+    "stage3_window_participation_ratio.png",
+    "stage3_pc1_pc2_trajectory.png",
+    "stage3_control_summary.csv",
+    "stage3_control_comparison.png",
+    "stage3_window_significance_summary.csv",
+    "stage3_bootstrap_effects.csv",
+    "stage3_permutation_effects.csv",
+    "stage3_effect_size_ci.png",
+    "stage3_cpp_trial_proxies.csv",
+    "stage3_pc_cpp_mapping.csv",
+    "stage3_pc1_cpp_proxy_scatter.png"
+  ],
+  "included_splits": [
+    "train",
+    "val",
+    "test"
+  ],
+  "interpretation": "The pooled latent dynamics show response-preceding low-dimensional concentration and PC/CPP proxy alignment, supporting a CPP-like response-proximal accumulation axis.",
+  "latent_shape": [
+    255,
+    308,
+    32
+  ],
+  "n_trials": 255,
+  "passed": true,
+  "pooled_inference_warning": "This pooled analysis includes train split latents seen during model fitting; use it to assess sample-size stability, not as independent test-set inference.",
+  "significance_tests": {
+    "n_bootstrap": 2000,
+    "n_permutations": 2000,
+    "n_primary_tests": 6,
+    "statistically_supported_tests": 4
+  },
+  "strongest_abs_pc_cpp_correlation": 0.3446420699549533,
+  "time_resolved_pca_rows": 308,
+  "trend_summary": {
+    "early_participation_ratio": 2.7656222698340565,
+    "early_pc1_explained": 0.5306658609493374,
+    "late_minus_early_participation_ratio": -0.2687192056288983,
+    "late_minus_early_pc1_explained": 0.05040108989771108,
+    "late_participation_ratio": 2.496903064205158,
+    "late_pc1_explained": 0.5810669508470485,
+    "participation_ratio_decreases_pre_response": true,
+    "pc1_explained_increases_pre_response": true
+  },
+  "window_pca_rows": 4,
+  "windows_ms": {
+    "early_pre_response": [
+      -600.0,
+      -300.0
+    ],
+    "late_pre_response": [
+      -120.0,
+      -50.0
+    ],
+    "mid_pre_response": [
+      -300.0,
+      -120.0
+    ],
+    "peri_response_contaminated": [
+      -50.0,
+      100.0
+    ]
+  }
+}

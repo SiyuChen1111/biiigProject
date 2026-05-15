@@ -6,7 +6,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from modeling.analysis import run_core_latent_analysis
+from modeling.analysis import run_core_latent_analysis, run_pooled_latent_analysis
 from modeling.config import AnalysisConfig, DataContractConfig, TrainingConfig
 from modeling.controls import run_minimal_controls
 from modeling.data_contract import validate_stage2_dataset
@@ -81,6 +81,28 @@ def _make_preparation_sources(root: Path) -> Path:
     return script_root
 
 
+def _write_latent_export(path: Path, trial_ids: list[int], times_ms: np.ndarray, hidden_dim: int = 5) -> None:
+    rng = np.random.default_rng(sum(trial_ids) + len(trial_ids))
+    z = rng.normal(size=(len(trial_ids), len(times_ms), hidden_dim)).astype(np.float32)
+    metadata = pd.DataFrame({"trial_id": trial_ids, "alignment": ["response_locked"] * len(trial_ids)})
+    np.savez_compressed(path, Z=z, times_ms=times_ms, metadata=metadata.to_dict(orient="list"))
+
+
+def _make_synthetic_pooled_dataset(root: Path) -> Path:
+    dataset_dir = root / "synthetic_pooled_dataset"
+    dataset_dir.mkdir(parents=True, exist_ok=True)
+    n_trials, n_timepoints, n_channels = 12, 80, 3
+    times_ms = np.linspace(-700, 150, num=n_timepoints, dtype=np.float32)
+    eeg = np.random.default_rng(7).normal(size=(n_trials, n_timepoints, n_channels)).astype(np.float32)
+    metadata = pd.DataFrame({"trial_id": list(range(n_trials)), "alignment": ["response_locked"] * n_trials})
+    np.save(dataset_dir / "eeg_cpp_trials.npy", eeg)
+    np.save(dataset_dir / "times_ms.npy", times_ms)
+    metadata.to_csv(dataset_dir / "metadata.csv", index=False)
+    (dataset_dir / "channel_names.txt").write_text("CP1\nCP2\nCPz\n", encoding="utf-8")
+    (dataset_dir / "preprocessing_notes.md").write_text("Synthetic pooled analysis dataset", encoding="utf-8")
+    return dataset_dir
+
+
 class Stage2ModelingTests(unittest.TestCase):
     def test_mask_respects_pre_response_window(self):
         times_ms = np.array([-200, 0, 100, 200, 300], dtype=np.float32)
@@ -133,10 +155,56 @@ class Stage2ModelingTests(unittest.TestCase):
             )
             self.assertTrue(train_report["passed"])
             latent_path = Path(train_report["latent_exports"]["val"])
-            analysis_report: Dict[str, Any] = run_core_latent_analysis(latent_path, Path(tmp) / "evidence" / "stage3", AnalysisConfig())
+            analysis_dir = Path(tmp) / "evidence" / "stage3"
+            analysis_report: Dict[str, Any] = run_core_latent_analysis(latent_path, analysis_dir, AnalysisConfig(), dataset_dir=dataset_dir)
             controls_report: Dict[str, Any] = run_minimal_controls(latent_path, Path(tmp) / "evidence" / "stage4")
             self.assertTrue(analysis_report["passed"])
+            self.assertTrue(analysis_report["cpp_mapping_available"])
+            self.assertEqual(analysis_report["time_resolved_pca_rows"], 40)
+            self.assertGreaterEqual(analysis_report["window_pca_rows"], 1)
+            self.assertTrue((analysis_dir / "stage3_time_resolved_pca.csv").exists())
+            self.assertTrue((analysis_dir / "stage3_window_pca_summary.csv").exists())
+            self.assertTrue((analysis_dir / "stage3_pc_cpp_mapping.csv").exists())
+            self.assertTrue((analysis_dir / "stage3_control_summary.csv").exists())
+            self.assertTrue((analysis_dir / "stage3_control_comparison.png").exists())
             self.assertTrue(controls_report["passed"])
+
+    def test_pooled_latent_analysis_runs_with_significance_outputs(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            dataset_dir = _make_synthetic_pooled_dataset(root)
+            times_ms = np.load(dataset_dir / "times_ms.npy")
+            latent_dir = root / "latents"
+            latent_dir.mkdir()
+            latent_paths = [
+                latent_dir / "latents_train.npz",
+                latent_dir / "latents_val.npz",
+                latent_dir / "latents_test.npz",
+            ]
+            _write_latent_export(latent_paths[0], [0, 1, 2, 3], times_ms)
+            _write_latent_export(latent_paths[1], [4, 5, 6, 7], times_ms)
+            _write_latent_export(latent_paths[2], [8, 9, 10, 11], times_ms)
+
+            analysis_dir = root / "evidence" / "stage3_pooled"
+            report = run_pooled_latent_analysis(
+                latent_paths,
+                analysis_dir,
+                AnalysisConfig(),
+                dataset_dir=dataset_dir,
+                n_bootstrap=5,
+                n_permutations=5,
+            )
+
+            self.assertTrue(report["passed"])
+            self.assertEqual(report["n_trials"], 12)
+            self.assertEqual(report["analysis_scope"], "pooled_train_val_test")
+            self.assertEqual(report["included_splits"], ["train", "val", "test"])
+            self.assertTrue((analysis_dir / "stage3_window_significance_summary.csv").exists())
+            self.assertTrue((analysis_dir / "stage3_bootstrap_effects.csv").exists())
+            self.assertTrue((analysis_dir / "stage3_permutation_effects.csv").exists())
+            self.assertTrue((analysis_dir / "stage3_effect_size_ci.png").exists())
+            self.assertTrue((analysis_dir / "stage3_window_pc_spectrum.png").exists())
+            self.assertTrue((analysis_dir / "stage3_window_participation_ratio.png").exists())
 
     def test_baseline_and_soft_prior_comparison_runs(self):
         with tempfile.TemporaryDirectory() as tmp:

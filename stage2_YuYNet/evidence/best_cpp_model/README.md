@@ -5,6 +5,7 @@
 This directory contains the retained best model from the Stage 2 response-locked CPP reconstruction sweep.
 
 All non-best sweep runs and temporary training outputs should be treated as disposable. This directory is the canonical retained result for the current modeling stage.
+The retained checkpoint is `long_002`.
 
 ## Data
 
@@ -119,15 +120,32 @@ best_training_loss.png
 stage2_average_waveform_comparison.png
 ```
 
-## Next Step
+## Analysis Outputs
 
-The next planned analysis is to use the retained latent states to inspect:
+The retained latent exports support two analysis folders:
 
 ```text
-PC explained / dimensionality changes near response
-latent trajectory structure
-whether latent dimensions align with CPP amplitude, slope, or cumulative CPP proxies
+stage3/
+stage3_pooled/
 ```
+
+### `stage3/`
+
+- Conservative test-split analysis using `latents_test.npz`
+- Response-locked PCA, participation ratio, CPP proxy mapping, and control plots
+- Use this for the independent sanity check on the retained model
+
+### `stage3_pooled/`
+
+- Pooled train/val/test analysis using all three latent exports
+- Adds bootstrap confidence intervals and permutation p-values for the PCA window comparisons
+- Use this to assess whether the pre-response changes are stable when trial count increases
+
+## Log Notes
+
+- The pooled analysis currently reports `255` trials and `4/6` statistically supported primary tests after FDR correction.
+- The pooled result is useful for sample-size stability, but it is not an independent test-set inference because `train` latents were seen during fitting.
+- The test-only and pooled folders are both retained so the sample-size effect can be compared directly.
 
 The current scientific goal remains:
 
