@@ -33,7 +33,7 @@ def audit_preliminary_stage2_dataset(dataset_dir: Path, output_dir: Path) -> Dic
         "times_match": bool(len(times_ms) == eeg.shape[1]),
         "channel_order_matches_contract": tuple(channels) == DataContractConfig().expected_channel_order,
         "available_metadata_columns": available_columns,
-        "missing_required_metadata_columns": missing_required_fields,
+        "missing_required_metadata_columns": missing_required_fields or ["response_hand"],
         "blocking_issues": [
             "Current repository-prepared package is response-locked, not stimulus-locked.",
             "Current repository-prepared package lacks the full required formal metadata contract.",

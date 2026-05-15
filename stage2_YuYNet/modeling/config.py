@@ -18,21 +18,10 @@ class DataContractConfig:
     )
     expected_channel_order: Tuple[str, ...] = ("CP1", "CP2", "CPz")
     required_metadata_columns: Tuple[str, ...] = (
-        "subject_id",
         "trial_id",
-        "condition",
-        "evidence_strength",
-        "choice",
-        "correctness",
-        "RT_ms",
-        "response_hand",
-        "artifact_rejection_flag",
+        "alignment",
     )
-    optional_aliases: dict = field(
-        default_factory=lambda: {
-            "evidence_strength": ("difficulty",),
-        }
-    )
+    optional_aliases: dict = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -50,13 +39,27 @@ class TrainingConfig:
     hidden_dim: int = 32
     num_layers: int = 1
     future_horizon_ms: int = 50
-    lambda_recon: float = 0.3
+    lambda_future: float = 0.2
+    lambda_recon: float = 1.0
+    lambda_derivative: float = 0.5
+    lambda_variance: float = 0.5
+    lambda_cpp_mean: float = 0.5
+    lambda_cpp_prior: float = 0.1
+    lambda_monotonic: float = 1.0
+    lambda_slope_floor: float = 0.5
+    lambda_late_amplitude: float = 1.0
+    lambda_cpp_mean_alignment: float = 0.05
     lambda_smooth: float = 0.001
+    future_weight_scale: float = 0.75
+    slope_floor_ratio: float = 0.5
+    enable_cpp_shape_prior: bool = True
     train_fraction: float = 0.70
     val_fraction: float = 0.15
     test_fraction: float = 0.15
-    min_mask_lead_ms: int = 50
-    baseline_window_ms: Tuple[float, float] = (-200.0, 0.0)
+    analysis_window_ms: Tuple[float, float] = (-600.0, -50.0)
+    early_window_ms: Tuple[float, float] = (-600.0, -300.0)
+    mid_window_ms: Tuple[float, float] = (-300.0, -120.0)
+    late_window_ms: Tuple[float, float] = (-120.0, -50.0)
 
 
 @dataclass(frozen=True)

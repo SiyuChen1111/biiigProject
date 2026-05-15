@@ -7,6 +7,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from sklearn.decomposition import PCA
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import r2_score
 
 from .config import AnalysisConfig
 from .utils import ensure_dir, write_json
@@ -44,27 +46,52 @@ def _compute_time_varying_dimensionality(latents: np.ndarray) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
-def _response_locked_distance(latents: np.ndarray, times_ms: np.ndarray, metadata: pd.DataFrame, config: AnalysisConfig) -> pd.DataFrame:
-    """Measure convergence toward a response-aligned latent state."""
-    rt_ms = metadata["RT_ms"].to_numpy(dtype=float)
-    response_state_mask = (times_ms >= config.response_locked_window_ms[0]) & (times_ms <= config.response_locked_window_ms[1])
+def _windowed_pca_summary(latents: np.ndarray, times_ms: np.ndarray, config: AnalysisConfig) -> pd.DataFrame:
     rows = []
-    for trial_idx in range(latents.shape[0]):
-        relative_time = times_ms - rt_ms[trial_idx]
-        protected = (relative_time >= config.response_locked_window_ms[0]) & (relative_time <= config.response_locked_window_ms[1])
-        if protected.sum() == 0:
+    window_mask = (times_ms >= config.response_locked_window_ms[0]) & (times_ms <= config.response_locked_window_ms[1])
+    contaminated_mask = (times_ms >= config.contaminated_window_ms[0]) & (times_ms <= config.contaminated_window_ms[1])
+    for label, mask in {
+        "response_window": window_mask,
+        "contaminated_window": contaminated_mask,
+    }.items():
+        if mask.sum() < 2:
             continue
-        response_state = latents[trial_idx, protected, :].mean(axis=0)
-        distance = np.linalg.norm(latents[trial_idx] - response_state[None, :], axis=1)
-        for time_idx, value in enumerate(distance):
-            rows.append(
-                {
-                    "trial_index": trial_idx,
-                    "time_ms": float(times_ms[time_idx]),
-                    "relative_to_rt_ms": float(relative_time[time_idx]),
-                    "distance_to_response_state": float(value),
-                }
-            )
+        snapshot = latents[:, mask, :].reshape(-1, latents.shape[-1])
+        pca = PCA(n_components=min(config.pca_components, snapshot.shape[1], snapshot.shape[0]))
+        pca.fit(snapshot)
+        explained = pca.explained_variance_ratio_
+        rows.append(
+            {
+                "window": label,
+                "n_points": int(mask.sum()),
+                "pc1": float(explained[0]) if len(explained) > 0 else float("nan"),
+                "pc2": float(explained[1]) if len(explained) > 1 else float("nan"),
+                "pc3": float(explained[2]) if len(explained) > 2 else float("nan"),
+                "participation_ratio": _participation_ratio(pca.explained_variance_),
+            }
+        )
+    return pd.DataFrame(rows)
+
+
+def _latent_cpp_proxy_summary(latents: np.ndarray, times_ms: np.ndarray, config: AnalysisConfig) -> pd.DataFrame:
+    analysis_mask = (times_ms >= config.response_locked_window_ms[0]) & (times_ms <= config.response_locked_window_ms[1])
+    late_mask = (times_ms >= config.contaminated_window_ms[0]) & (times_ms <= config.contaminated_window_ms[1])
+    X = latents.mean(axis=1)
+    time_curve = np.broadcast_to(times_ms[None, :], (latents.shape[0], len(times_ms)))
+    slope_target = np.diff(time_curve[:, analysis_mask], axis=1).mean(axis=1)
+    late_target = time_curve[:, late_mask].mean(axis=1)
+    cumulative_target = time_curve[:, analysis_mask].sum(axis=1)
+
+    rows = []
+    for name, target in {
+        "cpp_slope_proxy": slope_target,
+        "cpp_late_amplitude_proxy": late_target,
+        "cpp_cumulative_proxy": cumulative_target,
+    }.items():
+        reg = LinearRegression()
+        reg.fit(X, target)
+        pred = reg.predict(X)
+        rows.append({"target": name, "r2": float(r2_score(target, pred))})
     return pd.DataFrame(rows)
 
 
@@ -75,15 +102,16 @@ def run_core_latent_analysis(latent_npz: Path, output_dir: Path, config: Analysi
     loaded = np.load(latent_npz, allow_pickle=True)
     latents = loaded["Z"]
     times_ms = loaded["times_ms"]
-    metadata = pd.DataFrame(loaded["metadata"].item())
 
     pca, transformed = _fit_global_pca(latents, config.pca_components)
     dimensionality = _compute_time_varying_dimensionality(latents)
-    response_distance = _response_locked_distance(latents, times_ms, metadata, config)
+    windowed_pca = _windowed_pca_summary(latents, times_ms, config)
+    latent_cpp_summary = _latent_cpp_proxy_summary(latents, times_ms, config)
 
     np.savez_compressed(output_dir / "stage3_global_pca_scores.npz", scores=transformed, explained_variance_ratio=pca.explained_variance_ratio_)
     dimensionality.to_csv(output_dir / "stage3_time_varying_dimensionality.csv", index=False)
-    response_distance.to_csv(output_dir / "stage3_response_locked_convergence.csv", index=False)
+    windowed_pca.to_csv(output_dir / "stage3_windowed_pca_summary.csv", index=False)
+    latent_cpp_summary.to_csv(output_dir / "stage3_latent_cpp_proxy_summary.csv", index=False)
 
     plt.figure(figsize=(8, 4))
     plt.plot(times_ms, transformed.mean(axis=0)[:, 0], label="PC1")
@@ -108,7 +136,8 @@ def run_core_latent_analysis(latent_npz: Path, output_dir: Path, config: Analysi
         "passed": True,
         "latent_shape": list(latents.shape),
         "explained_variance_ratio": pca.explained_variance_ratio_.tolist(),
-        "response_locked_rows": int(len(response_distance)),
+        "windowed_pca_rows": int(len(windowed_pca)),
+        "latent_cpp_proxy_rows": int(len(latent_cpp_summary)),
         "contaminated_window_ms": list(config.contaminated_window_ms),
     }
     write_json(output_dir / "stage3_analysis_report.json", report)

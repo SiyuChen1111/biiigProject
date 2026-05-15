@@ -1,4 +1,4 @@
-"""Stage 2 CPP latent-dynamics baseline package."""
+"""Stage 2 response-locked CPP latent-dynamics baseline package."""
 
 from .config import AnalysisConfig, DataContractConfig, TrainingConfig
 from .model import CPPForwardGRU, ForwardOutputs, masked_self_supervised_loss

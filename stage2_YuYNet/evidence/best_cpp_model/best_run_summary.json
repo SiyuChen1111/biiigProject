@@ -1,0 +1,62 @@
+{
+  "amp_ratio": 0.9911271929740906,
+  "best_cpp_overlay": "/Users/siyu/Documents/GitHub/biiigProject/stage2_YuYNet/evidence/sweep_cpp_prior/best_cpp_overlay.png",
+  "best_cpp_slope_overlay": "/Users/siyu/Documents/GitHub/biiigProject/stage2_YuYNet/evidence/sweep_cpp_prior/best_cpp_slope_overlay.png",
+  "best_training_loss": "/Users/siyu/Documents/GitHub/biiigProject/stage2_YuYNet/evidence/sweep_cpp_prior/best_training_loss.png",
+  "checkpoint_path": "/Users/siyu/Documents/GitHub/biiigProject/stage2_YuYNet/evidence/sweep_cpp_prior/long_002/best_model.pt",
+  "corr": 0.9898958621102802,
+  "late_err": 0.016760528087615967,
+  "max_epochs": 50,
+  "mse": 0.0004376351134851575,
+  "param_analysis_window_ms": [
+    -600.0,
+    -50.0
+  ],
+  "param_batch_size": 32,
+  "param_early_stopping_patience": 5,
+  "param_early_window_ms": [
+    -600.0,
+    -300.0
+  ],
+  "param_enable_cpp_shape_prior": true,
+  "param_future_horizon_ms": 50,
+  "param_future_weight_scale": 0.75,
+  "param_gradient_clip": 1.0,
+  "param_hidden_dim": 32,
+  "param_lambda_cpp_mean": 0.5,
+  "param_lambda_cpp_mean_alignment": 0.05,
+  "param_lambda_cpp_prior": 0.05,
+  "param_lambda_derivative": 0.5,
+  "param_lambda_future": 0.2,
+  "param_lambda_late_amplitude": 4.0,
+  "param_lambda_monotonic": 1.0,
+  "param_lambda_recon": 1.0,
+  "param_lambda_slope_floor": 0.5,
+  "param_lambda_smooth": 0.001,
+  "param_lambda_variance": 0.5,
+  "param_late_window_ms": [
+    -120.0,
+    -50.0
+  ],
+  "param_learning_rate": 0.001,
+  "param_max_epochs": 50,
+  "param_mid_window_ms": [
+    -300.0,
+    -120.0
+  ],
+  "param_num_layers": 1,
+  "param_projection_dim": 16,
+  "param_seed": 42,
+  "param_slope_floor_ratio": 0.5,
+  "param_test_fraction": 0.15,
+  "param_train_fraction": 0.7,
+  "param_val_fraction": 0.15,
+  "param_weight_decay": 0.0001,
+  "run_dir": "/Users/siyu/Documents/GitHub/biiigProject/stage2_YuYNet/evidence/sweep_cpp_prior/long_002",
+  "run_id": "long_002",
+  "score": 0.8354689768046464,
+  "slope_corr": 0.9719325117206082,
+  "source_short_run": "run_011",
+  "stage": "long",
+  "test_total_loss": 0.1820266917347908
+}

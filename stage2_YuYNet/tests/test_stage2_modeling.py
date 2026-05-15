@@ -14,6 +14,8 @@ from modeling.dataset import build_pre_response_mask
 from modeling.prepare_contract import audit_preliminary_stage2_dataset
 from modeling.preparation import prepare_stage2_dataset_package
 from modeling.train import train_stage2_pipeline
+from modeling.train import train_baseline_and_soft_prior
+from modeling.sweep import run_small_cpp_prior_sweep
 from scipy.io import savemat
 
 
@@ -135,6 +137,29 @@ class Stage2ModelingTests(unittest.TestCase):
             controls_report: Dict[str, Any] = run_minimal_controls(latent_path, Path(tmp) / "evidence" / "stage4")
             self.assertTrue(analysis_report["passed"])
             self.assertTrue(controls_report["passed"])
+
+    def test_baseline_and_soft_prior_comparison_runs(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            dataset_dir = _make_synthetic_dataset(Path(tmp))
+            summary = train_baseline_and_soft_prior(
+                dataset_dir,
+                Path(tmp) / "evidence" / "comparison",
+                TrainingConfig(max_epochs=2, early_stopping_patience=1, batch_size=4),
+            )
+            self.assertIn("baseline_test_metrics", summary)
+            self.assertIn("soft_prior_test_metrics", summary)
+
+    def test_small_cpp_prior_sweep_runs(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            dataset_dir = _make_synthetic_dataset(Path(tmp))
+            summary = run_small_cpp_prior_sweep(
+                dataset_dir,
+                Path(tmp) / "evidence" / "sweep",
+                TrainingConfig(max_epochs=2, early_stopping_patience=1, batch_size=4),
+            )
+            self.assertIn("score", summary)
+            self.assertTrue((Path(tmp) / "evidence" / "sweep" / "sweep_results.csv").exists())
+            self.assertTrue((Path(tmp) / "evidence" / "sweep" / "best_cpp_overlay.png").exists())
 
 
 if __name__ == "__main__":

@@ -1,45 +1,90 @@
 # Stage 2 YuYNet Modeling
 
-This folder contains the first CPP latent-dynamics baseline for the stage2_YuYNet project.
+This folder contains the response-locked CPP modeling pipeline for the stage2_YuYNet project.
 
-## What this model currently does
+## Current status
 
-- validates the Stage 2 EEG contract
-- trains a **causal forward GRU** on `CP1`, `CP2`, `CPz`
-- learns trial-wise latent states `z_t`
-- reconstructs the current EEG and predicts short future windows
-- exports latent tensors for PCA / response-locked analysis
-- runs minimal controls for time-index and response-hand confounds
-- reports train / validation / **test** loss
+The active model is a **causal forward GRU** trained on response-locked EEG from `CP1`, `CP2`, and `CPz`.
 
-## What the current model can achieve
+The retained best result is stored in:
 
-It can already serve as a scientifically constrained baseline for asking:
+`evidence/best_cpp_model/`
 
-- whether the CPP-region signal has a stable low-dimensional latent structure
-- whether latent trajectories move toward a response-like state before RT
-- whether reconstruction and short-horizon prediction are possible from a causal state
-- whether time-index or response-hand effects are obvious confounds
+That folder contains the final checkpoint, summary tables, latent exports, and comparison figures.
 
-What it **cannot** do yet:
+## What this setup does now
 
-- it does not prove evidence accumulation
-- it does not handle multimodal EEG channels
-- it does not include semi-supervised behavioral heads by default
-- it does not yet provide publication-ready scientific conclusions
+- keeps the response-locked EEG data as the only required input
+- trains a self-learning causal GRU baseline
+- reconstructs the CPP-like average waveform
+- exports latent tensors for downstream PCA-style checks
+- keeps a single retained best model for interpretation
+- stores sweep results only in the retained model folder
+
+## Active folder layout
+
+```text
+stage2_YuYNet/
+├── CPP_latent_dynamics_scientific_proposal.md
+├── EEG_preprocessing_request_for_partner.md
+├── README.md
+├── ROADMAP_EXECUTION_DECISIONS.md
+├── dataset/
+│   ├── eeg_cpp_trials.npy
+│   ├── metadata.csv
+│   ├── times_ms.npy
+│   ├── channel_names.txt
+│   ├── preprocessing_notes.md
+│   └── README.md
+├── evidence/
+│   ├── stage0/
+│   │   ├── stage0_preliminary_package_report.json
+│   │   └── stage0_blocking_audit_report.json
+│   └── best_cpp_model/
+│       ├── best_model.pt
+│       ├── best_run_summary.json
+│       ├── best_training_loss.png
+│       ├── best_cpp_overlay.png
+│       ├── best_cpp_slope_overlay.png
+│       ├── latents_train.npz
+│       ├── latents_val.npz
+│       ├── latents_test.npz
+│       ├── stage2_cpp_average_sanity.npz
+│       ├── stage2_training_report.json
+│       ├── stage2_average_waveform_comparison.png
+│       ├── sweep_results.csv
+│       └── README.md
+├── modeling/
+│   ├── analysis.py
+│   ├── cli.py
+│   ├── config.py
+│   ├── controls.py
+│   ├── data_contract.py
+│   ├── dataset.py
+│   ├── model.py
+│   ├── preparation.py
+│   ├── prepare_contract.py
+│   ├── sweep.py
+│   ├── train.py
+│   └── utils.py
+├── script_pre_EEG/
+└── tests/
+    └── test_stage2_modeling.py
+```
 
 ## File map
 
 ### Core pipeline
 
 - `modeling/config.py` — config objects and defaults
-- `modeling/data_contract.py` — Stage 1 dataset validation and intake report
-- `modeling/dataset.py` — loading, subject-aware normalization, masks, splits
-- `modeling/model.py` — causal GRU encoder, heads, and self-supervised loss
+- `modeling/data_contract.py` — dataset validation and intake report
+- `modeling/dataset.py` — loading, normalization, masks, splits
+- `modeling/model.py` — causal GRU encoder, heads, and losses
 - `modeling/train.py` — training loop, checkpointing, latent export, test metrics
-- `modeling/analysis.py` — PCA and latent-dynamics analysis
+- `modeling/analysis.py` — CPP waveform and latent-dynamics analysis
 - `modeling/controls.py` — time-index / response-hand controls
 - `modeling/cli.py` — command-line entry point
+- `modeling/sweep.py` — parameter sweep and best-run selection
 - `modeling/utils.py` — shared helpers
 
 ### Validation and notes
@@ -64,17 +109,18 @@ For repository-only preparation of a preliminary package:
 python -m modeling.cli prepare --dataset-dir dataset --output-dir evidence
 ```
 
-This writes a preliminary package plus a blocking audit. It does not mark the dataset as formally training-ready.
+This writes a preliminary package plus a blocking audit.
 
 ## How to run
 
 From `stage2_YuYNet/`:
 
 ```bash
-python -m modeling.cli validate --dataset-dir <dataset> --output-dir evidence
+python -m modeling.cli prepare --dataset-dir dataset --output-dir evidence
 python -m modeling.cli train --dataset-dir <dataset> --output-dir evidence
 python -m modeling.cli analyze --dataset-dir <dataset> --latent-path <latents.npz> --output-dir evidence
 python -m modeling.cli controls --dataset-dir <dataset> --latent-path <latents.npz> --output-dir evidence
+python -m modeling.cli sweep --dataset-dir dataset --output-dir evidence
 ```
 
 If you prefer to run from the repo root, use:
@@ -85,14 +131,18 @@ PYTHONPATH=stage2_YuYNet python -m modeling.cli ...
 
 ## Outputs
 
-- `stage1_data_contract_report.json`
+- `evidence/stage0/`
+- `evidence/best_cpp_model/`
+- `best_model.pt`
+- `best_run_summary.json`
 - `stage2_training_report.json`
-- `stage2_validation_loss_history.png`
-- `stage2_reconstruction_sanity.png`
+- `stage2_cpp_average_sanity.npz`
+- `stage2_average_waveform_comparison.png`
+- `best_cpp_overlay.png`
+- `best_cpp_slope_overlay.png`
+- `best_training_loss.png`
 - `latents_train.npz`, `latents_val.npz`, `latents_test.npz`
-- `stage3_analysis_report.json`
-- `stage4_controls_report.json`
 
 ## Evaluation note
 
-The current implementation has been verified on synthetic data with a full train → test → analysis → controls pass. The repository is now ready for real EEG contract input.
+The current implementation has been verified on synthetic data and on the retained real-data best run. The repository now keeps one canonical result folder for interpretation and follow-up analysis.

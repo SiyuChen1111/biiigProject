@@ -87,3 +87,60 @@ The main goal is to build a neural-network model for CPP-related single-trial EE
   - 目前仓库里的可运行示例数据仍是 synthetic Stage 2 data，只用于验证 pipeline；真实训练数据还要等 partner 预处理后的 EEG 文件。
   - 训练配置当前使用的是默认 baseline：`max_epochs=100`、`early_stopping_patience=15`、自监督损失由 reconstruction + future prediction + smoothness 组成。
   - 如果后面训练效果仍然弱，优先怀疑数据规模 / 数据质量 / 真实 EEG 与 synthetic 差异，而不是先认为结构一定有问题。
+
+## 2026-05-15 — Retained best response-locked CPP reconstruction model
+
+### What changed
+- The active Stage 2 modeling work shifted from stimulus-locked training assumptions to response-locked CPP reconstruction.
+- The retained training data are `stage2_YuYNet/dataset/eeg_cpp_trials.npy`.
+- The data shape is `255 trials x 308 time points x 3 channels`.
+- The retained channels are `CP1`, `CP2`, and `CPz`.
+- Behavior labels are not used in the current retained model.
+
+### Current method
+- The model remains a deterministic forward GRU.
+- The model reconstructs current EEG and predicts a short future window.
+- A soft CPP shape prior is used as an inductive bias, not as a hard DDM constraint.
+- A parameter sweep selected the best model by CPP reconstruction quality rather than by total loss alone.
+
+### Retained model
+- Canonical retained output directory:
+  - `stage2_YuYNet/evidence/best_cpp_model/`
+- Retained checkpoint:
+  - `stage2_YuYNet/evidence/best_cpp_model/best_model.pt`
+- Best sweep run:
+  - `long_002`
+
+### Best parameters
+- `max_epochs = 50`
+- `batch_size = 32`
+- `lambda_cpp_prior = 0.05`
+- `lambda_late_amplitude = 4.0`
+- `lambda_cpp_mean_alignment = 0.05`
+- `lambda_slope_floor = 0.5`
+- `slope_floor_ratio = 0.5`
+
+### Best performance
+- Mean CPP waveform correlation: `0.9899`
+- Slope correlation: `0.9719`
+- Amplitude ratio: `0.9911`
+- Late-window amplitude error: `0.0168`
+- MSE: `0.00044`
+
+### Interpretation
+- The retained model can reproduce the average response-locked CPP waveform under the current self-supervised reconstruction objective.
+- This is a modeling milestone, not a final scientific claim.
+- The result supports moving to latent-space analysis, but it does not yet establish evidence accumulation or behavioral relevance.
+
+### Cleanup policy
+- Non-best sweep runs and temporary smoke-training outputs are not part of the retained active result.
+- The active retained modeling artifact is `stage2_YuYNet/evidence/best_cpp_model/`.
+
+### Next plan
+- Analyze latent states from the retained model.
+- Inspect PC explained / dimensionality changes near response.
+- Check whether latent dimensions align with CPP amplitude, slope, and cumulative CPP proxies.
+- Use those analyses to decide whether the current forward GRU latent space supports interpretable response-proximal CPP dynamics.
+
+### Final goal
+- Build a response-locked CPP latent-dynamics model that reconstructs CPP shape and supports interpretable latent-space analysis of response-proximal neural dynamics.

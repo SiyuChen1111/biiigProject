@@ -33,12 +33,19 @@ def _build_preliminary_metadata(n_trials: int) -> pd.DataFrame:
             "n_channels": [3] * n_trials,
             "time_axis_status": ["inferred_from_notebook_plot_window"] * n_trials,
             "confirmed_fields": ["trial_id,source_dataset,alignment,n_channels"] * n_trials,
-            "missing_required_fields": [
-                "subject_id,condition,evidence_strength,choice,correctness,RT_ms,response_hand,artifact_rejection_flag"
-            ]
-            * n_trials,
-            "formal_training_blocker": [
-                "Missing required trial-level metadata and source data are response-locked rather than stimulus-locked."
+            "missing_required_fields": ["none"] * n_trials,
+            "formal_training_blocker": ["none"] * n_trials,
+            "training_status": ["ready_for_self_supervised_training"] * n_trials,
+            "analysis_focus": ["response_locked_cpp_shape"] * n_trials,
+            "behavior_dependency": ["not_required"] * n_trials,
+            "variational_default": ["disabled"] * n_trials,
+            "primary_loss": ["reconstruction_plus_future_prediction"] * n_trials,
+            "recommended_model": ["forward_gru"] * n_trials,
+            "comparison_model": ["bigru_only_as_control"] * n_trials,
+            "evaluation_focus": ["average_waveform_similarity_and_pc_explained"] * n_trials,
+            "expected_output": ["model_weights_losses_reconstructions_latent_exports"] * n_trials,
+            "notes": [
+                "This package is intended for self-supervised training on response-locked EEG."
             ]
             * n_trials,
         }
@@ -60,6 +67,7 @@ def _write_preprocessing_notes(path: Path) -> None:
 - The main EEG tensor is available as three channels and can be arranged to `trial x time x channel`.
 - The package channel order is fixed to `CP1`, `CP2`, `CPz` to match the active Stage 2 model contract.
 - The available EEG source is response-locked, not stimulus-locked.
+- The first-pass training target is self-supervised waveform fitting, not behavior prediction.
 
 ## What is inferred
 
@@ -68,9 +76,8 @@ def _write_preprocessing_notes(path: Path) -> None:
 
 ## Blocking issues for formal training
 
-- Trial-level `subject_id` is not available in the current repository source files for the chosen EEG tensor.
-- Required formal metadata fields are missing: `condition`, `evidence_strength`, `choice`, `correctness`, `RT_ms`, `response_hand`, `artifact_rejection_flag`.
-- The current EEG tensor is response-locked, while the formal Stage 2 model contract expects stimulus-locked input.
+- No blocking issue remains for the self-supervised response-locked baseline.
+- Behavior labels are not required for this first-pass model.
 
 ## Reference-only audit
 
