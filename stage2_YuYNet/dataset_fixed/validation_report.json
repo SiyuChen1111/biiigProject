@@ -1,0 +1,36 @@
+{
+  "dataset_dir": "dataset_fixed",
+  "eeg_shape": [
+    7297,
+    308,
+    3
+  ],
+  "metadata_shape": [
+    7297,
+    28
+  ],
+  "times_shape": [
+    308
+  ],
+  "channel_names": [
+    "CP1",
+    "CP2",
+    "CPz"
+  ],
+  "n_subjects": 41,
+  "total_trials": 7297,
+  "trial_count_match": true,
+  "time_count_match": true,
+  "channel_count_match": true,
+  "channel_names_match": true,
+  "trial_id_unique": true,
+  "any_nan_in_eeg": false,
+  "any_inf_in_eeg": false,
+  "missing_metadata_key_columns": [],
+  "any_nan_in_metadata_key_columns": false,
+  "subject_level_trial_count_passed": true,
+  "rt_positive": true,
+  "rt_ms_min": 498.21,
+  "rt_ms_max": 1799.1,
+  "final_passed": true
+}

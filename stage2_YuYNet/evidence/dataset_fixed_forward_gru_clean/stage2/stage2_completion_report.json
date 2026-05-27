@@ -1,0 +1,66 @@
+{
+  "passed": true,
+  "source": "completed_from_existing_best_model_checkpoint",
+  "checkpoint_path": "/Users/siyu/Documents/GitHub/biiigProject/stage2_YuYNet/evidence/dataset_fixed_forward_gru/stage2/best_model.pt",
+  "split_metrics": {
+    "train": {
+      "total_loss": 0.39915690049529073,
+      "future_loss": 0.41200543344020846,
+      "recon_loss": 0.031982383644208315,
+      "derivative_loss": 0.007114788651233539,
+      "variance_loss": 0.006258657824946568,
+      "cpp_mean_loss": 0.03163090955931693,
+      "monotonic_loss": 2.5109523862600325,
+      "slope_floor_loss": 0.0006759110405255342,
+      "late_amplitude_loss": 0.0036194855652865953,
+      "cpp_mean_alignment_loss": 2.1555559650063514,
+      "cpp_prior_total_loss": 2.6226876020431518,
+      "smooth_loss": 0.002483056270284578
+    },
+    "val": {
+      "total_loss": 0.38647716326846016,
+      "future_loss": 0.41688237256473964,
+      "recon_loss": 0.032538987799651094,
+      "derivative_loss": 0.007218330193104016,
+      "variance_loss": 0.006559734025763141,
+      "cpp_mean_loss": 0.031962580564949244,
+      "monotonic_loss": 2.3686564515034356,
+      "slope_floor_loss": 0.0006638915947405621,
+      "late_amplitude_loss": 0.003967202979967826,
+      "cpp_mean_alignment_loss": 2.078660565945837,
+      "cpp_prior_total_loss": 2.4768886350923114,
+      "smooth_loss": 0.002503731313885914
+    },
+    "test": {
+      "total_loss": 0.39531886246469283,
+      "future_loss": 0.4189010759194692,
+      "recon_loss": 0.03719973201966948,
+      "derivative_loss": 0.007192575657326315,
+      "variance_loss": 0.006222898864911662,
+      "cpp_mean_loss": 0.03679199195984337,
+      "monotonic_loss": 2.3697504815128116,
+      "slope_floor_loss": 0.000618713958020736,
+      "late_amplitude_loss": 0.0048720457772206925,
+      "cpp_mean_alignment_loss": 2.347890165117052,
+      "cpp_prior_total_loss": 2.4923264011740685,
+      "smooth_loss": 0.0025348344610797036
+    }
+  },
+  "latent_exports": {
+    "train": "/Users/siyu/Documents/GitHub/biiigProject/stage2_YuYNet/evidence/dataset_fixed_forward_gru/stage2/latents_train.npz",
+    "val": "/Users/siyu/Documents/GitHub/biiigProject/stage2_YuYNet/evidence/dataset_fixed_forward_gru/stage2/latents_val.npz",
+    "test": "/Users/siyu/Documents/GitHub/biiigProject/stage2_YuYNet/evidence/dataset_fixed_forward_gru/stage2/latents_test.npz"
+  },
+  "figures": {
+    "real_vs_recon_cpp_waveform": "/Users/siyu/Documents/GitHub/biiigProject/stage2_YuYNet/evidence/dataset_fixed_forward_gru/stage2/real_vs_recon_cpp_waveform.png",
+    "real_vs_recon_cpp_slope": "/Users/siyu/Documents/GitHub/biiigProject/stage2_YuYNet/evidence/dataset_fixed_forward_gru/stage2/real_vs_recon_cpp_slope.png",
+    "channel_wise_reconstruction": "/Users/siyu/Documents/GitHub/biiigProject/stage2_YuYNet/evidence/dataset_fixed_forward_gru/stage2/channel_wise_reconstruction.png"
+  },
+  "horizon_steps": 13,
+  "split_sizes": {
+    "train": 5108,
+    "val": 1095,
+    "test": 1094
+  },
+  "latent_exports_git_note": "latents_train.npz is intentionally not tracked in Git because it exceeds GitHub 100MB file limit; regenerate with run_dataset_fixed_stage2_stage3.py or keep local copy."
+}

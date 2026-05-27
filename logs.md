@@ -168,3 +168,88 @@ The main goal is to build a neural-network model for CPP-related single-trial EE
 ### Operational note
 - Future PCA reads should default to `stage3_pooled/` when the question is sample-size stability.
 - Use `stage3/` when the question is conservative test-split behavior or model sanity checking.
+
+## 2026-05-27 — Fixed trial-level EEG-behavior dataset and reran Stage 2/3
+
+### What changed
+- Confirmed the old `resp_locked_erp.mat` export problem: EEG appending was previously outside the subject loop, so the old export retained only the final subject.
+- Rebuilt the response-locked trial-level dataset from the corrected subject-block export.
+- Added `stage2_YuYNet/build_stage2_dataset_from_export.py` to convert the corrected MATLAB export into the Stage 2/3 dataset contract.
+- Added `stage2_YuYNet/run_dataset_fixed_stage2_stage3.py` to finish Stage 2 outputs from the best checkpoint and run test-split Stage 3 latent analyses.
+
+### Fixed dataset
+- Canonical fixed dataset:
+  - `stage2_YuYNet/dataset_fixed/`
+- EEG file:
+  - `eeg_cpp_trials.npy`
+- Final EEG shape:
+  - `7297 trials x 308 time points x 3 channels`
+- Metadata shape:
+  - `7297 rows x 28 columns`
+- Subjects:
+  - `41`
+- Channel order:
+  - `CP1`, `CP2`, `CPz`
+- Validation:
+  - `validation_report.json` has `final_passed = true`
+
+### Trial handling
+- The corrected MATLAB export contains `10258` EEG-behavior trial pairs across 41 subjects before final filtering.
+- Trials with non-finite response-locked EEG windows were removed together with their matching behavior rows.
+- The retained dataset keeps EEG and metadata row order aligned by `trial_id`.
+- The dataset is response-locked, not stimulus-locked.
+
+### Stage 2 rerun
+- Canonical retained result directory:
+  - `stage2_YuYNet/evidence/dataset_fixed_forward_gru_clean/`
+- Model:
+  - Existing forward GRU reconstruction model, unchanged.
+- No DDM model was trained.
+- No VAE was trained.
+- Split sizes:
+  - train: `5108`
+  - validation: `1095`
+  - test: `1094`
+- Total loss:
+  - train: `0.3992`
+  - validation: `0.3865`
+  - test: `0.3953`
+- Exported latents:
+  - `stage2/latents_train.npz`
+  - `stage2/latents_val.npz`
+  - `stage2/latents_test.npz`
+
+### Stage 2 figures
+- `stage2/real_vs_recon_cpp_waveform.png`
+- `stage2/real_vs_recon_cpp_slope.png`
+- `stage2/channel_wise_reconstruction.png`
+- `stage2/model_reconstructed_channel_average_waveforms_matched_axes.png`
+- `stage2/model_real_vs_recon_channel_average_waveforms_matched_axes.png`
+
+### Stage 3 test-split analysis
+- Test latent shape:
+  - `1094 trials x 308 time points x 32 latent dimensions`
+- Main outputs:
+  - `stage3_test/stage3_time_resolved_pca.csv`
+  - `stage3_test/stage3_window_pca_summary.csv`
+  - `stage3_test/stage3_global_pca_scores.npz`
+  - `stage3_test/test_cpp_trial_features.csv`
+  - `stage3_test/test_latent_cpp_linking_with_controls.csv`
+  - `stage3_test/latent_score_group_behavior_summary.csv`
+- Strongest observed latent-CPP link:
+  - PC1 late score vs CPP late amplitude
+  - Pearson `r = -0.9803`
+  - linear `R2 = 0.9610`
+
+### Controls and interpretation
+- Trial-shuffled latent control was weak:
+  - max absolute `r = 0.0825`
+- Time-shuffled latent control remained high:
+  - max absolute `r = 0.8652`
+- Random latent direction control remained high:
+  - max absolute `r = 0.9467`
+- Interpretation:
+  - Reconstruction evidence is now available on the full fixed dataset.
+  - Latent-CPP evidence is strong descriptively, but not yet specific enough to claim a unique CPP latent axis.
+  - Latent-behavior evidence is descriptive only: low/mid/high PC1 late score groups differ in RT and accuracy summaries.
+  - DDM evidence is still not complete and should not be claimed from this run.
