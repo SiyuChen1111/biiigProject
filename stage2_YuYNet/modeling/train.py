@@ -10,7 +10,7 @@ from torch.optim.adamw import AdamW
 from dataclasses import replace
 
 from .config import TrainingConfig, default_evidence_dir
-from .dataset import Stage2SplitArtifacts, make_dataloaders
+from .dataset import Stage2SplitArtifacts, load_stage2_dataset, make_dataloaders
 from .model import CPPForwardGRU, masked_self_supervised_loss
 from .utils import ensure_dir, set_global_seed, write_json
 
@@ -183,6 +183,76 @@ def export_latents(
         metadata=metadata.to_dict(orient="list"),
     )
     return latent_path
+
+
+def _resolve_inference_device(device: str | None) -> torch.device:
+    requested = (device or "auto").strip().lower()
+    if requested == "auto":
+        return torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    if requested == "cuda" and not torch.cuda.is_available():
+        raise ValueError("CUDA was requested for latent extraction but is not available on this machine.")
+    if requested not in {"cpu", "cuda"}:
+        raise ValueError(f"Unsupported device '{device}'. Use 'auto', 'cpu', or 'cuda'.")
+    return torch.device(requested)
+
+
+def export_full_latents_from_checkpoint(
+    checkpoint_path: Path,
+    dataset_dir: Path,
+    output_dir: Path,
+    device: str | None = None,
+    output_filename: str = "latents_full.npz",
+) -> Dict[str, object]:
+    """Export latents for every trial in dataset order using a trained checkpoint."""
+    checkpoint = torch.load(checkpoint_path, map_location="cpu", weights_only=False)
+    config = TrainingConfig(**checkpoint["config"])
+    eeg, _, metadata, artifacts, _ = load_stage2_dataset(dataset_dir, config)
+    times_ms = np.load(dataset_dir / "times_ms.npy").astype(np.float32)
+
+    model = CPPForwardGRU(config)
+    model.set_horizon(artifacts.horizon_steps)
+    model.load_state_dict(checkpoint["model_state"])
+
+    resolved_device = _resolve_inference_device(device)
+    model.to(resolved_device)
+    model.eval()
+
+    batch_size = max(1, int(config.batch_size))
+    latent_batches: List[np.ndarray] = []
+    with torch.no_grad():
+        for start in range(0, eeg.shape[0], batch_size):
+            stop = min(start + batch_size, eeg.shape[0])
+            batch = torch.as_tensor(eeg[start:stop], dtype=torch.float32, device=resolved_device)
+            outputs = model(batch)
+            latent_batches.append(outputs.latents.detach().cpu().numpy())
+
+    latent_array = np.concatenate(latent_batches, axis=0).astype(np.float32, copy=False)
+    if latent_array.shape[0] != len(metadata):
+        raise RuntimeError("Latent export trial count does not match metadata row count.")
+    if latent_array.shape[1] != len(times_ms):
+        raise RuntimeError("Latent export time dimension does not match times_ms.")
+
+    output_dir = ensure_dir(output_dir)
+    latent_path = output_dir / output_filename
+    np.savez_compressed(
+        latent_path,
+        Z=latent_array,
+        metadata=metadata.to_dict(orient="list"),
+        times_ms=times_ms,
+    )
+
+    report = {
+        "passed": True,
+        "checkpoint_path": str(checkpoint_path),
+        "dataset_dir": str(dataset_dir),
+        "output_path": str(latent_path),
+        "device": str(resolved_device),
+        "latent_shape": list(latent_array.shape),
+        "metadata_rows": int(len(metadata)),
+        "timepoints": int(len(times_ms)),
+    }
+    write_json(output_dir / "latent_extraction_report.json", report)
+    return report
 
 
 def train_stage2_pipeline(

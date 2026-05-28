@@ -253,3 +253,59 @@ The main goal is to build a neural-network model for CPP-related single-trial EE
   - Latent-CPP evidence is strong descriptively, but not yet specific enough to claim a unique CPP latent axis.
   - Latent-behavior evidence is descriptive only: low/mid/high PC1 late score groups differ in RT and accuracy summaries.
   - DDM evidence is still not complete and should not be claimed from this run.
+
+## 2026-05-28 — Cleaned current Stage 2 outputs and exported full latent z
+
+### What changed
+- Cleaned the active `stage2_YuYNet/` result structure so the project now points to one current Stage 2 model and one full-trial latent export.
+- Removed older retained result folders that were based on earlier smaller datasets, older sweep selections, or split-only downstream analyses.
+- Updated `stage2_YuYNet/README.md` so the current model location, current full latent output, input-to-output process, and active folder structure are explicit.
+- Added a command-line latent extraction path for exporting all trials from an existing checkpoint without running reconstruction, future prediction analysis, PCA, or time-window averaging.
+- Added a regression test to confirm that full latent export preserves trial order relative to `metadata.csv`.
+
+### Current retained model
+- Current retained checkpoint:
+  - `stage2_YuYNet/evidence/dataset_fixed_forward_gru_clean/stage2/best_model.pt`
+- Current retained dataset:
+  - `stage2_YuYNet/dataset_fixed/`
+- Current retained model result folder:
+  - `stage2_YuYNet/evidence/dataset_fixed_forward_gru_clean/stage2/`
+
+### Removed outputs
+- Removed the old `stage2_YuYNet/evidence/best_cpp_model/` folder.
+- Removed the old `stage2_YuYNet/evidence/dataset_fixed_forward_gru_clean/stage3_test/` folder.
+- Removed the old `stage2_YuYNet/evidence/stage0/` folder.
+- Removed the old preliminary `stage2_YuYNet/dataset/` folder.
+- Removed transient `.DS_Store` and `__pycache__/` files.
+
+### Full latent z export
+- Exported full encoder latent states from the current model to:
+  - `stage2_YuYNet/dataset_fixed/latents_full/latents_full.npz`
+- This full latent file is retained locally and ignored by Git because it is larger than the normal GitHub file limit.
+- Export report:
+  - `stage2_YuYNet/dataset_fixed/latents_full/latent_extraction_report.json`
+- Latent contents:
+  - `Z`
+  - `metadata`
+  - `times_ms`
+- Latent shape:
+  - `7297 trials x 308 time points x 32 latent dimensions`
+- The export preserves all time points.
+- No time-window averaging was applied.
+- No PCA was applied.
+- No latent time compression was applied.
+- The exported metadata remains row-aligned with `dataset_fixed/metadata.csv`.
+
+### Verification
+- Confirmed the current model checkpoint still exists after cleanup.
+- Confirmed `latents_full.npz` contains `Z`, `metadata`, and `times_ms`.
+- Confirmed `Z.shape = (7297, 308, 32)`.
+- Confirmed `times_ms` matches `dataset_fixed/times_ms.npy`.
+- Confirmed the latent metadata `trial_id` order exactly matches `dataset_fixed/metadata.csv`.
+- Confirmed all latent values are finite.
+- Ran the full-latent export alignment test successfully.
+
+### Interpretation
+- The active project state now keeps the current all-trial Stage 2 model result and its full latent-space output as the canonical materials for follow-up analyses.
+- Older small-dataset and split-only result folders are no longer retained as active outputs because they can be mistaken for the current model results.
+- Downstream researchers should use `latents_full.npz` when choosing response windows, deriving CPP-like latent scores, or preparing later DDM drift-rate regressions.

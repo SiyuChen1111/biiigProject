@@ -13,7 +13,7 @@ from modeling.data_contract import validate_stage2_dataset
 from modeling.dataset import build_pre_response_mask
 from modeling.prepare_contract import audit_preliminary_stage2_dataset
 from modeling.preparation import prepare_stage2_dataset_package
-from modeling.train import train_stage2_pipeline
+from modeling.train import export_full_latents_from_checkpoint, train_stage2_pipeline
 from modeling.train import train_baseline_and_soft_prior
 from modeling.sweep import run_small_cpp_prior_sweep
 from scipy.io import savemat
@@ -168,6 +168,39 @@ class Stage2ModelingTests(unittest.TestCase):
             self.assertTrue((analysis_dir / "stage3_control_summary.csv").exists())
             self.assertTrue((analysis_dir / "stage3_control_comparison.png").exists())
             self.assertTrue(controls_report["passed"])
+
+    def test_full_latent_extraction_preserves_metadata_order(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            dataset_dir = _make_synthetic_dataset(root)
+            train_report: Dict[str, Any] = train_stage2_pipeline(
+                dataset_dir,
+                root / "evidence" / "stage2",
+                TrainingConfig(max_epochs=2, early_stopping_patience=1, batch_size=4),
+            )
+
+            export_dir = root / "exports"
+            report = export_full_latents_from_checkpoint(
+                checkpoint_path=Path(train_report["checkpoint_path"]),
+                dataset_dir=dataset_dir,
+                output_dir=export_dir,
+                device="cpu",
+            )
+
+            self.assertTrue(report["passed"])
+            latent_file = export_dir / "latents_full.npz"
+            self.assertTrue(latent_file.exists())
+
+            loaded = np.load(latent_file, allow_pickle=True)
+            metadata = pd.DataFrame(loaded["metadata"].item())
+            source_metadata = pd.read_csv(dataset_dir / "metadata.csv")
+            times_ms = np.load(dataset_dir / "times_ms.npy")
+
+            self.assertEqual(loaded["Z"].shape[0], len(source_metadata))
+            self.assertEqual(loaded["Z"].shape[1], len(times_ms))
+            self.assertEqual(loaded["Z"].shape[2], TrainingConfig().hidden_dim)
+            self.assertListEqual(metadata["trial_id"].tolist(), source_metadata["trial_id"].tolist())
+            self.assertTrue(np.array_equal(loaded["times_ms"], times_ms))
 
     def test_pooled_latent_analysis_runs_with_significance_outputs(self):
         with tempfile.TemporaryDirectory() as tmp:

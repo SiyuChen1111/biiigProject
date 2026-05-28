@@ -1,101 +1,37 @@
 # Stage 2 YuYNet Modeling
 
-This folder contains the response-locked CPP modeling pipeline for the stage2_YuYNet project.
+This folder contains the current Stage 2 CPP latent modeling work. The folder has been cleaned so the retained outputs point to one current model and one full-trial latent export.
 
-## Current status
+## Current model and latent output
 
-The active model is a **causal forward GRU** trained on response-locked EEG from `CP1`, `CP2`, and `CPz`.
-
-The retained best result is stored in:
-
-`evidence/best_cpp_model/`
-
-That folder contains the final checkpoint, summary tables, latent exports, and comparison figures.
-
-## What this setup does now
-
-- keeps the response-locked EEG data as the only required input
-- trains a self-learning causal GRU baseline
-- reconstructs the CPP-like average waveform
-- exports latent tensors for downstream PCA-style checks
-- keeps a single retained best model for interpretation
-- stores sweep results only in the retained model folder
-
-## Active folder layout
+Current recommended model:
 
 ```text
-stage2_YuYNet/
-├── CPP_latent_dynamics_scientific_proposal.md
-├── EEG_preprocessing_request_for_partner.md
-├── README.md
-├── ROADMAP_EXECUTION_DECISIONS.md
-├── dataset/
-│   ├── eeg_cpp_trials.npy
-│   ├── metadata.csv
-│   ├── times_ms.npy
-│   ├── channel_names.txt
-│   ├── preprocessing_notes.md
-│   └── README.md
-├── evidence/
-│   ├── stage0/
-│   │   ├── stage0_preliminary_package_report.json
-│   │   └── stage0_blocking_audit_report.json
-│   └── best_cpp_model/
-│       ├── best_model.pt
-│       ├── best_run_summary.json
-│       ├── best_training_loss.png
-│       ├── best_cpp_overlay.png
-│       ├── best_cpp_slope_overlay.png
-│       ├── latents_train.npz
-│       ├── latents_val.npz
-│       ├── latents_test.npz
-│       ├── stage2_cpp_average_sanity.npz
-│       ├── stage2_training_report.json
-│       ├── stage2_average_waveform_comparison.png
-│       ├── sweep_results.csv
-│       └── README.md
-├── modeling/
-│   ├── analysis.py
-│   ├── cli.py
-│   ├── config.py
-│   ├── controls.py
-│   ├── data_contract.py
-│   ├── dataset.py
-│   ├── model.py
-│   ├── preparation.py
-│   ├── prepare_contract.py
-│   ├── sweep.py
-│   ├── train.py
-│   └── utils.py
-├── script_pre_EEG/
-└── tests/
-    └── test_stage2_modeling.py
+evidence/dataset_fixed_forward_gru_clean/stage2/best_model.pt
 ```
 
-## File map
-
-### Core pipeline
-
-- `modeling/config.py` — config objects and defaults
-- `modeling/data_contract.py` — dataset validation and intake report
-- `modeling/dataset.py` — loading, normalization, masks, splits
-- `modeling/model.py` — causal GRU encoder, heads, and losses
-- `modeling/train.py` — training loop, checkpointing, latent export, test metrics
-- `modeling/analysis.py` — CPP waveform and latent-dynamics analysis
-- `modeling/controls.py` — time-index / response-hand controls
-- `modeling/cli.py` — command-line entry point
-- `modeling/sweep.py` — parameter sweep and best-run selection
-- `modeling/utils.py` — shared helpers
-
-### Validation and notes
-
-- `tests/test_stage2_modeling.py` — synthetic end-to-end checks
-- `ROADMAP_EXECUTION_DECISIONS.md` — first-pass modeling decision record
-
-## Expected data layout
+Current recommended full latent output:
 
 ```text
-dataset/
+dataset_fixed/latents_full/latents_full.npz
+```
+
+This file is a local generated artifact and is not committed because it is larger than the normal GitHub file limit. Regenerate it with the command below if it is missing.
+
+The full latent file contains:
+
+- `Z`: encoder latent array with shape `(7297, 308, 32)`
+- `metadata`: trial metadata aligned row-by-row with `Z`
+- `times_ms`: the 308 EEG time points in milliseconds
+
+Use this full latent export for downstream analyses such as selecting a time window, averaging within that window, building CPP-like latent scores, and linking those scores to DDM drift rate or other behavioral measures.
+
+## Input to output process
+
+The active input dataset is:
+
+```text
+dataset_fixed/
 ├── eeg_cpp_trials.npy
 ├── metadata.csv
 ├── times_ms.npy
@@ -103,46 +39,97 @@ dataset/
 └── preprocessing_notes.md
 ```
 
-For repository-only preparation of a preliminary package:
+The model process is:
 
-```bash
-python -m modeling.cli prepare --dataset-dir dataset --output-dir evidence
+1. Load `dataset_fixed/eeg_cpp_trials.npy`, with trial-by-time-by-channel EEG from `CP1`, `CP2`, and `CPz`.
+2. Use `dataset_fixed/metadata.csv` and `dataset_fixed/times_ms.npy` to keep trial identity and time alignment.
+3. Run the trained Stage 2 forward GRU model from `evidence/dataset_fixed_forward_gru_clean/stage2/best_model.pt`.
+4. Extract only the encoder latent `z` at every time point for every trial.
+5. Save the full latent tensor and aligned metadata to `dataset_fixed/latents_full/latents_full.npz`.
+
+No time-window averaging, PCA, or trial compression is applied in `latents_full.npz`.
+
+## Current folder layout
+
+```text
+stage2_YuYNet/
+├── README.md
+├── CPP_latent_dynamics_scientific_proposal.md
+├── EEG_preprocessing_request_for_partner.md
+├── ROADMAP_EXECUTION_DECISIONS.md
+├── build_stage2_dataset_from_export.py
+├── run_dataset_fixed_stage2_stage3.py
+├── dataset_fixed/
+│   ├── eeg_cpp_trials.npy
+│   ├── metadata.csv
+│   ├── times_ms.npy
+│   ├── channel_names.txt
+│   ├── preprocessing_notes.md
+│   ├── validation_report.json
+│   ├── subject_trial_count_summary.csv
+│   ├── diagnostic plots
+│   └── latents_full/
+│       ├── latents_full.npz
+│       └── latent_extraction_report.json
+├── evidence/
+│   └── dataset_fixed_forward_gru_clean/
+│       ├── dataset_fixed_stage2_stage3_report.json
+│       └── stage2/
+│           ├── best_model.pt
+│           ├── stage2_completion_report.json
+│           ├── latents_train.npz
+│           ├── latents_val.npz
+│           ├── latents_test.npz
+│           └── reconstruction and waveform figures
+├── modeling/
+│   ├── config.py
+│   ├── data_contract.py
+│   ├── dataset.py
+│   ├── model.py
+│   ├── train.py
+│   ├── analysis.py
+│   ├── controls.py
+│   ├── cli.py
+│   ├── sweep.py
+│   └── utils.py
+├── script_pre_EEG/
+└── tests/
+    └── test_stage2_modeling.py
 ```
 
-This writes a preliminary package plus a blocking audit.
+## File roles
 
-## How to run
+- `dataset_fixed/`: current formal data input and full latent output.
+- `evidence/dataset_fixed_forward_gru_clean/stage2/`: current retained model and model-quality figures.
+- `modeling/`: code for data loading, model definition, training, latent export, and analyses.
+- `tests/`: synthetic checks for the modeling pipeline and latent export alignment.
+- `script_pre_EEG/`: original preprocessing source materials kept for reference.
 
-From `stage2_YuYNet/`:
+Older sweep outputs, old preliminary datasets, test-only Stage 3 analyses, and cache files have been removed to avoid confusing them with the current retained result.
+
+## Useful commands
+
+Run from `stage2_YuYNet/`.
+
+Extract full-trial latents from the current model:
 
 ```bash
-python -m modeling.cli prepare --dataset-dir dataset --output-dir evidence
-python -m modeling.cli train --dataset-dir <dataset> --output-dir evidence
-python -m modeling.cli analyze --dataset-dir <dataset> --latent-path <latents.npz> --output-dir evidence
-python -m modeling.cli controls --dataset-dir <dataset> --latent-path <latents.npz> --output-dir evidence
-python -m modeling.cli sweep --dataset-dir dataset --output-dir evidence
+python -m modeling.cli extract-latents \
+  --dataset-dir dataset_fixed \
+  --checkpoint-path evidence/dataset_fixed_forward_gru_clean/stage2/best_model.pt \
+  --output-dir dataset_fixed/latents_full \
+  --device auto \
+  --output-filename latents_full.npz
 ```
 
-If you prefer to run from the repo root, use:
+Validate the active dataset:
 
 ```bash
-PYTHONPATH=stage2_YuYNet python -m modeling.cli ...
+python -m modeling.cli validate --dataset-dir dataset_fixed --output-dir evidence
 ```
 
-## Outputs
+Run the relevant latent-export test:
 
-- `evidence/stage0/`
-- `evidence/best_cpp_model/`
-- `best_model.pt`
-- `best_run_summary.json`
-- `stage2_training_report.json`
-- `stage2_cpp_average_sanity.npz`
-- `stage2_average_waveform_comparison.png`
-- `best_cpp_overlay.png`
-- `best_cpp_slope_overlay.png`
-- `best_training_loss.png`
-- `latents_train.npz`, `latents_val.npz`, `latents_test.npz`
-
-## Evaluation note
-
-The current implementation has been verified on synthetic data and on the retained real-data best run. The repository now keeps one canonical result folder for interpretation and follow-up analysis.
+```bash
+python -m unittest tests.test_stage2_modeling.Stage2ModelingTests.test_full_latent_extraction_preserves_metadata_order
+```

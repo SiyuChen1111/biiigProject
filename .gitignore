@@ -14,6 +14,7 @@ outputs/**/*.pt
 
 # Large regenerated Stage 2 latent exports over GitHub's 100MB limit
 stage2_YuYNet/evidence/dataset_fixed_forward_gru_clean/stage2/latents_train.npz
+stage2_YuYNet/dataset_fixed/latents_full/latents_full.npz
 
 # Python build/runtime artifacts
 __pycache__/

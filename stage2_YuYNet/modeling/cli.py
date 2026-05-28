@@ -10,17 +10,20 @@ from .data_contract import validate_stage2_dataset
 from .prepare_contract import audit_preliminary_stage2_dataset
 from .preparation import prepare_stage2_dataset_package
 from .sweep import run_cpp_prior_sweep
-from .train import train_stage2_pipeline
+from .train import export_full_latents_from_checkpoint, train_stage2_pipeline
 
 
 def main() -> None:
     """Command-line entry point for the stage2 pipeline."""
     parser = argparse.ArgumentParser(description="Stage2 response-locked CPP latent-dynamics baseline pipeline")
-    parser.add_argument("command", choices=("prepare", "validate", "train", "analyze", "controls", "sweep"))
+    parser.add_argument("command", choices=("prepare", "validate", "train", "analyze", "controls", "sweep", "extract-latents"))
     parser.add_argument("--dataset-dir", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path)
     parser.add_argument("--latent-path", type=Path)
     parser.add_argument("--latent-paths", type=Path, nargs="+")
+    parser.add_argument("--checkpoint-path", type=Path)
+    parser.add_argument("--device", default="auto")
+    parser.add_argument("--output-filename", default="latents_full.npz")
     parser.add_argument("--analysis-label", default="single_split")
     args = parser.parse_args()
 
@@ -53,6 +56,16 @@ def main() -> None:
         run_minimal_controls(args.latent_path, output_dir / "stage4")
     elif args.command == "sweep":
         run_cpp_prior_sweep(args.dataset_dir, output_dir / "sweep_cpp_prior", TrainingConfig())
+    elif args.command == "extract-latents":
+        if args.checkpoint_path is None:
+            raise SystemExit("--checkpoint-path is required for extract-latents")
+        export_full_latents_from_checkpoint(
+            checkpoint_path=args.checkpoint_path,
+            dataset_dir=args.dataset_dir,
+            output_dir=args.output_dir or (args.dataset_dir / "latents_full"),
+            device=args.device,
+            output_filename=args.output_filename,
+        )
 
 
 if __name__ == "__main__":
