@@ -13,6 +13,7 @@ from modeling.data_contract import validate_stage2_dataset
 from modeling.dataset import build_pre_response_mask
 from modeling.prepare_contract import audit_preliminary_stage2_dataset
 from modeling.preparation import prepare_stage2_dataset_package
+from modeling.rt_ridge import RidgeRTConfig, run_ridge_rt_analysis
 from modeling.train import export_full_latents_from_checkpoint, train_stage2_pipeline
 from modeling.train import train_baseline_and_soft_prior
 from modeling.sweep import run_small_cpp_prior_sweep
@@ -261,6 +262,45 @@ class Stage2ModelingTests(unittest.TestCase):
             self.assertIn("score", summary)
             self.assertTrue((Path(tmp) / "evidence" / "sweep" / "sweep_results.csv").exists())
             self.assertTrue((Path(tmp) / "evidence" / "sweep" / "best_cpp_overlay.png").exists())
+
+    def test_ridge_rt_analysis_runs(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            dataset_dir = _make_synthetic_dataset(root)
+            source_metadata = pd.read_csv(dataset_dir / "metadata.csv")
+            times_ms = np.load(dataset_dir / "times_ms.npy")
+            rng = np.random.default_rng(11)
+            latents = rng.normal(size=(len(source_metadata), len(times_ms), 4)).astype(np.float32)
+            latent_path = root / "latents_full.npz"
+            np.savez_compressed(
+                latent_path,
+                Z=latents,
+                times_ms=times_ms,
+                metadata=source_metadata.to_dict(orient="list"),
+            )
+
+            output_dir = root / "ridge_rt"
+            report = run_ridge_rt_analysis(
+                latent_path,
+                output_dir,
+                dataset_dir=dataset_dir,
+                config=RidgeRTConfig(
+                    windows={"full_pre_response": (-200.0, 580.0)},
+                    n_splits=3,
+                    targets=("log_RT_ms",),
+                    baseline_columns=("subject_id", "evidence_strength", "correctness"),
+                ),
+            )
+
+            self.assertTrue(report["passed"])
+            self.assertTrue(report["quality"]["dataset_alignment_checked"])
+            performance = pd.read_csv(output_dir / "ridge_rt_model_performance.csv")
+            self.assertEqual(
+                set(performance["model"]),
+                {"baseline", "hidden", "baseline_plus_hidden", "baseline_plus_shuffled_hidden"},
+            )
+            self.assertTrue((output_dir / "ridge_rt_model_deltas.csv").exists())
+            self.assertTrue((output_dir / "ridge_rt_beta_stability.csv").exists())
 
 
 if __name__ == "__main__":

@@ -309,3 +309,81 @@ The main goal is to build a neural-network model for CPP-related single-trial EE
 - The active project state now keeps the current all-trial Stage 2 model result and its full latent-space output as the canonical materials for follow-up analyses.
 - Older small-dataset and split-only result folders are no longer retained as active outputs because they can be mistaken for the current model results.
 - Downstream researchers should use `latents_full.npz` when choosing response windows, deriving CPP-like latent scores, or preparing later DDM drift-rate regressions.
+
+## 2026-06-09 — Ridge Regression 评估 hidden states 与 RT 的关系
+
+### What changed
+- Added a Ridge Regression analysis for testing whether time-averaged hidden states predict trial-level response time.
+- Added a new command-line entry:
+  - `python -m modeling.cli ridge-rt --dataset-dir dataset_fixed --latent-path dataset_fixed/latents_full/latents_full.npz --output-dir evidence/ridge_rt_hidden_rt`
+- Added a regression test to confirm the Ridge RT analysis runs and produces the expected model-comparison outputs.
+
+### Input data
+- Latent source:
+  - `stage2_YuYNet/dataset_fixed/latents_full/latents_full.npz`
+- Analysis output:
+  - `stage2_YuYNet/evidence/ridge_rt_hidden_rt/`
+- Data quality checks:
+  - `7297` trials
+  - `308` response-locked time points
+  - `32` hidden dimensions
+  - RT has no missing values
+  - latent values are finite
+  - latent metadata trial order matches `dataset_fixed/metadata.csv`
+
+### Method
+- For each trial, hidden states were averaged across selected response-preceding time windows.
+- Tested windows:
+  - full pre-response: `-600` to `-50 ms`
+  - early pre-response: `-600` to `-300 ms`
+  - mid pre-response: `-300` to `-120 ms`
+  - late pre-response: `-120` to `-50 ms`
+- Ridge Regression was used instead of ordinary linear regression because hidden dimensions can be correlated.
+- Two RT targets were evaluated:
+  - `log(RT_ms)` as the main target
+  - raw `RT_ms` as a supplementary target
+- Four model types were compared:
+  - baseline model: subject, difficulty, correctness
+  - hidden-only model: averaged hidden-state features
+  - baseline + hidden model
+  - baseline + shuffled hidden control
+- Ridge strength was selected inside the training portion of each cross-validation fold, then evaluated on held-out trials.
+
+### Main results
+- For `log(RT_ms)`, the baseline model reached about `R2 = 0.197`.
+- The best result came from the early pre-response window, `-600` to `-300 ms`.
+- In that window:
+  - baseline model: `R2 = 0.1965`
+  - hidden-only model: `R2 = 0.1490`
+  - baseline + hidden model: `R2 = 0.2996`
+  - baseline + shuffled hidden control: `R2 = 0.1946`
+- Adding hidden states improved prediction over the baseline by about `0.103 R2`.
+- The real hidden-state improvement was also stronger than the shuffled-hidden control by about `0.105 R2`.
+
+### Window comparison
+- `-600` to `-300 ms` was the strongest window for `log(RT_ms)`.
+- `-600` to `-50 ms` also improved over baseline, but slightly less strongly.
+- `-300` to `-120 ms` and `-120` to `-50 ms` showed weaker hidden-state contributions.
+- This suggests the current averaged hidden-state RT signal is not limited to the immediate motor-contaminated response period.
+
+### Outputs retained
+- `ridge_rt_analysis_report.json`
+- `ridge_rt_model_performance.csv`
+- `ridge_rt_model_deltas.csv`
+- `ridge_rt_predictions.csv`
+- `ridge_rt_beta_stability.csv`
+- `ridge_rt_hidden_coefficients_by_fold.csv`
+- `ridge_rt_feature_quality.csv`
+- `ridge_rt_window_deltas.png`
+
+### Interpretation
+- The current hidden states contain RT-relevant information beyond subject, difficulty, and correctness.
+- The result supports using time-averaged hidden states for follow-up behavioral modeling.
+- The evidence is predictive, not mechanistic: it shows hidden states help predict RT, but it does not by itself prove a specific evidence-accumulation mechanism.
+- The strongest result being in the earlier response-preceding window is useful because it reduces concern that the result only reflects immediate response execution.
+
+### Verification
+- Ran the Ridge RT analysis on the full current latent export.
+- Confirmed all expected output files were generated.
+- Ran the Ridge RT unit test successfully:
+  - `python -m unittest tests.test_stage2_modeling.Stage2ModelingTests.test_ridge_rt_analysis_runs`

@@ -9,6 +9,7 @@ from .controls import run_minimal_controls
 from .data_contract import validate_stage2_dataset
 from .prepare_contract import audit_preliminary_stage2_dataset
 from .preparation import prepare_stage2_dataset_package
+from .rt_ridge import run_ridge_rt_analysis
 from .sweep import run_cpp_prior_sweep
 from .train import export_full_latents_from_checkpoint, train_stage2_pipeline
 
@@ -16,7 +17,10 @@ from .train import export_full_latents_from_checkpoint, train_stage2_pipeline
 def main() -> None:
     """Command-line entry point for the stage2 pipeline."""
     parser = argparse.ArgumentParser(description="Stage2 response-locked CPP latent-dynamics baseline pipeline")
-    parser.add_argument("command", choices=("prepare", "validate", "train", "analyze", "controls", "sweep", "extract-latents"))
+    parser.add_argument(
+        "command",
+        choices=("prepare", "validate", "train", "analyze", "controls", "sweep", "extract-latents", "ridge-rt"),
+    )
     parser.add_argument("--dataset-dir", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path)
     parser.add_argument("--latent-path", type=Path)
@@ -65,6 +69,14 @@ def main() -> None:
             output_dir=args.output_dir or (args.dataset_dir / "latents_full"),
             device=args.device,
             output_filename=args.output_filename,
+        )
+    elif args.command == "ridge-rt":
+        if args.latent_path is None:
+            raise SystemExit("--latent-path is required for ridge-rt")
+        run_ridge_rt_analysis(
+            latent_npz=args.latent_path,
+            dataset_dir=args.dataset_dir,
+            output_dir=args.output_dir or (args.dataset_dir / "ridge_rt"),
         )
 
 
