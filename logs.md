@@ -387,3 +387,170 @@ The main goal is to build a neural-network model for CPP-related single-trial EE
 - Confirmed all expected output files were generated.
 - Ran the Ridge RT unit test successfully:
   - `python -m unittest tests.test_stage2_modeling.Stage2ModelingTests.test_ridge_rt_analysis_runs`
+
+
+## 2026-06-10 — Neural validation audit and fast external validation
+
+### What changed
+- Ran a strict neural-validation audit on the full latent export from the current retained model.
+- Added a fast external behavioral validation to test whether hidden states provide incremental RT prediction over hand-crafted CPP features.
+- Generated publication-ready figures for the hidden-state relationship analysis.
+
+### Method
+- Strict audit compared hidden-state decoding against three control conditions:
+  - Shuffled trial order (trial-level control)
+  - Time-shuffled latent states (temporal structure control)
+  - Random latent direction (direction specificity control)
+- External behavioral validation compared four predictor sets:
+  - Baseline only: subject, difficulty, correctness
+  - Baseline + hand-crafted CPP features (amplitude, slope)
+  - Baseline + hidden states
+  - Baseline + shuffled hidden states
+- All comparisons used the same nested cross-validation scheme as the Ridge RT analysis.
+
+### Main results
+
+#### Hidden states → CPP amplitude
+- `R2 = 0.970` for hidden states predicting CPP amplitude.
+- Delta `R2 = 0.953` after controlling for baseline features.
+- Time-shuffled control `R2 = 0.312`: temporal structure accounts for part, but not most, of the link.
+- Interpretation: hidden states encode CPP amplitude strongly and specifically.
+
+#### RT bin decoding
+- Hidden states show a marginal but consistent edge over shuffled controls for fast vs slow RT tertile classification.
+- Choice direction decoding: near chance — hidden states do not encode stimulus identity.
+- Experimental condition decoding: near chance — hidden states do not encode task context.
+
+#### Fast external behavioral validation
+- `behavior + hand-crafted CPP features`: `R2 = 0.168`
+- `behavior + hidden states`: `R2 = -0.115`
+- Interpretation: in the fast external validation setting, hidden states do **not** provide reliable incremental RT prediction beyond hand-crafted CPP features.
+- This is a direct challenge to the claim that the latent space adds behavioral value.
+
+### Outputs retained
+- `Results/validation/behavioral_goodness_of_fit_summary.csv`
+- `Results/validation/hidden_state_decoding_results.csv`
+- `Results/validation/validation_summary.md`
+- `Results/figures/publication/` — Figure 2 (hidden-state relationship) and Supplementary S1 (behavioral external validation)
+
+### Interpretation
+- The model reconstructs CPP form well and the hidden states encode CPP amplitude.
+- The behavioral case is weak: hidden states do not reliably outperform direct CPP measurements for predicting RT.
+- The current result is descriptive, not mechanistic. No DDM drift-rate evidence is available yet.
+- The next required step is to define a formal CPP-related latent axis from the hidden states and test whether that axis provides incremental behavioral prediction over hand-crafted CPP features.
+
+
+## 2026-06-14 — Full repository restructure and code refactoring
+
+### What changed
+- Restructured the entire repository to follow TIER Protocol 4.0 conventions.
+- Refactored all active modeling code for readability: separated concerns into distinct dataclasses, split large functions into sub-functions, added comprehensive docstrings and type hints throughout.
+- Fixed the test suite import infrastructure.
+- Generated two new master-script deliverables.
+
+### Folder restructure
+
+The old layout (`stage2_YuYNet/modeling/`) was replaced by a TIER-aligned structure:
+
+```
+biiigProject/
+├── Data/
+│   ├── InputData/raw/           ← original MATLAB exports (read-only)
+│   ├── ProcessedData/           ← output of S0; input to all downstream steps
+│   └── IntermediateData/
+│       └── latents_full/        ← full latent tensor (7297 × 308 × 32)
+├── Scripts/
+│   ├── master_pipeline.ipynb    ← NEW: interactive master script (S0→S4)
+│   ├── pipeline_overview.md     ← NEW: TIER-style written walkthrough
+│   ├── s0_preprocessing/        ← raw → processed data
+│   ├── s1_modeling/             ← model library, importable as "modeling"
+│   ├── s2_training/             ← training executables, importable as "training"
+│   ├── s3_validation/           ← post-training audit scripts
+│   └── s4_analysis/             ← downstream analyses, importable as "analysis"
+├── Results/
+│   ├── model_checkpoints/       ← best_model.pt
+│   ├── validation/
+│   ├── regression/
+│   └── figures/
+└── tests/
+```
+
+- `stage2_YuYNet/` was deleted after all contents were migrated.
+- `archive/` was not migrated (retained as historical reference only).
+- `prepare_contract.py` (legacy thin wrapper) was deleted.
+
+### Code refactoring
+
+#### `config.py` — three-class separation
+The original single `TrainingConfig` (53 mixed fields) was split into three dataclasses with distinct responsibilities:
+
+- `ModelConfig` — architecture parameters only (`projection_dim`, `hidden_dim`, `num_layers`).
+- `LossWeights` — all 11 `lambda_*` loss weights, shape-prior flags, and loss-related time windows.
+- `TrainingConfig` — training loop and data-pipeline parameters, with `model: ModelConfig` and `loss: LossWeights` as nested fields. Backwards-compatible `@property` shims allow existing call sites to continue using `config.hidden_dim`, `config.lambda_recon`, etc. without modification.
+
+#### `model.py` — loss function decomposition
+The 17-parameter "god function" `masked_self_supervised_loss` was refactored into:
+
+- `_compute_reconstruction_losses()` — reconstruction, future prediction, derivative matching, variance alignment.
+- `_compute_cpp_shape_prior_losses()` — monotonicity, slope floor, late amplitude, mean alignment.
+- `_compute_smoothness_loss()` — latent temporal smoothness.
+- `masked_self_supervised_loss()` — orchestration only; accepts a single `LossWeights` argument.
+
+#### `dataset.py` — mask logic deduplication
+Extracted `_build_trial_mask()` to eliminate duplicate mask construction code that existed separately in `load_stage2_dataset()` and `make_dataloaders()`. Added inline comments explaining the physical meaning of `valid_time` (time points excluded because they lack complete future-prediction targets).
+
+#### `rt_ridge.py` — English section headers
+Added six English-language section headers to the 628-line file:
+
+- `§ 1  Data Loading & Input Validation`
+- `§ 2  Feature Engineering`
+- `§ 3  Ridge Regression & Cross-Validation`
+- `§ 4  Summary Statistics & Delta Metrics`
+- `§ 5  Visualisation & Output`
+- `§ 6  Entry Point`
+
+#### `train.py`, `sweep.py`, `controls.py` — docstrings and type hints
+Added complete docstrings and type hint annotations to all public and private functions. For `train.py`, added explicit notes on the implicit dependency between `_save_cpp_average_examples()` (which writes a `.npz` side-effect) and the two functions that depend on that file being present.
+
+#### `cli.py` — cross-package import fix
+Rewrote the command-line entry point with a path-bootstrap block so that `rt_ridge` (in `s4_analysis`) is imported correctly regardless of which directory the CLI is invoked from.
+
+### Test infrastructure fixes
+- Created `conftest.py` at the project root to inject `sys.path` before pytest collects any module. This was the root cause of the `ModuleNotFoundError: No module named 'modeling'` error.
+- Created `pytest.ini` at the project root to pin `testpaths = tests` and `addopts = -v`.
+- Fixed four incorrect import lines in `tests/test_stage2_modeling.py` that used `from modeling.xxx` for modules that now live in the `training` and `analysis` namespaces:
+  - `from training.controls import run_minimal_controls`
+  - `from training.sweep import run_small_cpp_prior_sweep`
+  - `from training.train import train_model, export_full_latents_from_checkpoint`
+  - `from analysis.rt_ridge import run_ridge_rt_analysis`
+- Created `__init__.py` files for `s2_training/`, `s4_analysis/`, and `s3_validation/`.
+
+### New deliverables
+
+#### `Scripts/master_pipeline.ipynb`
+An interactive Jupyter notebook acting as the TIER-compliant master script. Contains 22 cells covering the full S0→S4 pipeline. Each stage has a Markdown explanation cell followed by a self-contained executable code cell. Cells can be run individually or sequentially top-to-bottom to reproduce the full analysis.
+
+#### `Scripts/pipeline_overview.md`
+A 276-line written walkthrough in TIER 4.0 style. Includes: complete annotated folder tree, per-step narrative description, loss-term parameter table, Ridge RT result table, import namespace reference, and CLI quick-reference command block.
+
+### Import namespace convention (active going forward)
+
+| Directory | Import namespace | Example |
+|---|---|---|
+| `Scripts/s1_modeling/` | `modeling` | `from modeling.config import TrainingConfig` |
+| `Scripts/s2_training/` | `training` | `from training.train import train_model` |
+| `Scripts/s4_analysis/` | `analysis` | `from analysis.rt_ridge import run_ridge_rt_analysis` |
+
+### Current project status
+- Model training: complete and frozen (`Results/model_checkpoints/best_model.pt`)
+- Full latent export: complete (`Data/IntermediateData/latents_full/latents_full.npz`, shape `7297 × 308 × 32`)
+- Neural reconstruction validation: passed (`R2 = 0.88`, CPP waveform correlation `0.99`)
+- Hidden-state → CPP amplitude: strong (`delta R2 = 0.953`)
+- Hidden-state → RT (incremental): weak in external validation; descriptive only
+- DDM drift-rate regression: not yet done
+- CPP latent axis: not yet formally defined
+
+### Next steps (priority order)
+1. Define a formal CPP-related latent axis from the hidden states (PCA or regression-based direction in latent space). Test cross-fold and cross-subject stability. Entry point: `Scripts/s4_analysis/analysis.py`.
+2. Test whether the CPP latent axis provides incremental RT prediction beyond hand-crafted CPP features (CPP amplitude + slope). This is the key unresolved scientific question. Entry point: modify `Scripts/s4_analysis/rt_ridge.py` to accept axis-projected features.
+3. Complete DDM drift-rate regression once the latent axis is validated. Entry point: new script under `Scripts/s4_analysis/`.

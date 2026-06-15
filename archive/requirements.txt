@@ -1,9 +1,0 @@
-mne
-numpy
-pandas
-matplotlib
-scikit-learn
-torch
-PyPDF2
-pdfplumber
-PyMuPDF
