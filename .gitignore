@@ -1,0 +1,27 @@
+# TIER-style raw data location (local only, not versioned)
+data/raw/
+1_Data/
+
+# Generated outputs
+output/
+
+# Intermediate ROI morphology-loss verification roots (local scratch, not retained)
+outputs/roi_conditional_generator_cpp_loss_*/
+
+# Generic scratch checkpoint/cache patterns
+outputs/**/checkpoints/
+outputs/**/*.pt
+
+# Large regenerated Stage 2 latent exports over GitHub's 100MB limit
+stage2_YuYNet/evidence/dataset_fixed_forward_gru_clean/stage2/latents_train.npz
+stage2_YuYNet/dataset_fixed/latents_full/latents_full.npz
+Results/validation/hidden_cpp_audit/hidden_to_cpp_fold_predictions.csv
+
+# Python build/runtime artifacts
+__pycache__/
+*.pyc
+
+# macOS files
+.DS_Store
+._*
+low-level_1.pdf
