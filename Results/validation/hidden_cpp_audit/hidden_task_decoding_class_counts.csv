@@ -1,0 +1,18 @@
+target,target_label,class_label,n_trials,proportion,chance_level_balanced_accuracy
+choice,Choice,1,3702,0.5073317801836371,0.5
+choice,Choice,2,3595,0.4926682198163629,0.5
+condition,Condition,1,1849,0.25339180485130874,0.25
+condition,Condition,2,1747,0.23941345758530902,0.25
+condition,Condition,3,1844,0.25270659175003424,0.25
+condition,Condition,4,1857,0.25448814581334794,0.25
+correctness,Correctness,0.0,1467,0.20104152391393723,0.5
+correctness,Correctness,1.0,5830,0.7989584760860627,0.5
+difficulty,Difficulty,1,653,0.08948883102644922,0.25
+difficulty,Difficulty,2,1884,0.25818829656023023,0.25
+difficulty,Difficulty,3,2336,0.3201315609154447,0.25
+difficulty,Difficulty,4,2424,0.33219131149787584,0.25
+rt_bin,RT bin,fast,2433,0.3334246950801699,0.3333333333333333
+rt_bin,RT bin,medium,2432,0.33328765245991504,0.3333333333333333
+rt_bin,RT bin,slow,2432,0.33328765245991504,0.3333333333333333
+probe_leftrightwin,Arrangement,1,3702,0.5073317801836371,0.5
+probe_leftrightwin,Arrangement,2,3595,0.4926682198163629,0.5

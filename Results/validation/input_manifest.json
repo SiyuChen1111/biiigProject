@@ -1,0 +1,60 @@
+{
+  "checkpoint_path": "/Users/siyu/Documents/GitHub/biiigProject/Results/model_checkpoints/best_model.pt",
+  "neural_data_path": "/Users/siyu/Documents/GitHub/biiigProject/Data/ProcessedData/eeg_cpp_trials.npy",
+  "metadata_path": "/Users/siyu/Documents/GitHub/biiigProject/Data/ProcessedData/metadata.csv",
+  "latent_path": "/Users/siyu/Documents/GitHub/biiigProject/Data/IntermediateData/latents_full/latents_full.npz",
+  "alignment_values": [
+    "response_locked"
+  ],
+  "input_channels": [
+    "CP1",
+    "CP2",
+    "CPz"
+  ],
+  "model_output_target": "current EEG reconstruction; future EEG prediction used during training",
+  "eeg_shape": [
+    7297,
+    308,
+    3
+  ],
+  "hidden_state_shape": [
+    7297,
+    308,
+    32
+  ],
+  "train_val_test_sizes": {
+    "train": 5108,
+    "val": 1095,
+    "test": 1094
+  },
+  "metadata_columns": [
+    "original_row_index",
+    "probe_accuracy",
+    "probe_rt",
+    "probe_attribute",
+    "cue_dimensionality",
+    "probe_leftrightwin",
+    "cue_color",
+    "cue_direction",
+    "cue_size",
+    "cue_luminance",
+    "rt_is_not_outlier",
+    "subj_idx",
+    "stim_onset",
+    "stim_code",
+    "resp_onset_sample",
+    "subj_id",
+    "subject_id",
+    "within_subject_trial_index",
+    "trial_id",
+    "RT_ms",
+    "correctness",
+    "condition",
+    "difficulty",
+    "evidence_strength",
+    "choice",
+    "response_hand",
+    "artifact_rejection_flag",
+    "alignment"
+  ]
+}
