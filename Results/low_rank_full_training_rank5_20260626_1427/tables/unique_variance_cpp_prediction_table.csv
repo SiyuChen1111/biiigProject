@@ -1,0 +1,11 @@
+seed,target,model,full_sample_r2,rmse,n_predictors
+0,CPP_late_mean,selected_CPP_like_latents_plus_covariates,0.8915928117132199,0.24447405208311643,10
+0,CPP_slope,selected_CPP_like_latents_plus_covariates,0.9012726711499264,0.001310377684787639,10
+1,CPP_late_mean,selected_CPP_like_latents_plus_covariates,0.9264882181079358,0.20014301874599613,10
+1,CPP_slope,selected_CPP_like_latents_plus_covariates,0.9337751934754281,0.0010669460205644861,10
+2,CPP_late_mean,selected_CPP_like_latents_plus_covariates,0.8692080592832226,0.26853742750846776,10
+2,CPP_slope,selected_CPP_like_latents_plus_covariates,0.8687293253198611,0.0015109760314613138,10
+3,CPP_late_mean,selected_CPP_like_latents_plus_covariates,0.862215058055416,0.27804869006448224,10
+3,CPP_slope,selected_CPP_like_latents_plus_covariates,0.8741170083519043,0.0014926968037043793,10
+4,CPP_late_mean,selected_CPP_like_latents_plus_covariates,0.9533502107199879,0.16011358977078063,10
+4,CPP_slope,selected_CPP_like_latents_plus_covariates,0.9540262262582742,0.0008927595217041142,10

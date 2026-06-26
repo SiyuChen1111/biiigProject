@@ -1,0 +1,5 @@
+feature_or_window,available,note
+CPP_late_mean,True,Computed in trial-level feature exports; inspect seed-level correlations for robustness.
+CPP_late_mean_robust,True,Computed in trial-level feature exports; inspect seed-level correlations for robustness.
+CPP_slope,True,Computed in trial-level feature exports; inspect seed-level correlations for robustness.
+CPP_slope_broad,True,Computed in trial-level feature exports; inspect seed-level correlations for robustness.

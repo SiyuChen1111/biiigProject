@@ -1,0 +1,13 @@
+{
+  "dataset_dir": "Data/ProcessedData",
+  "output_dir": "Results/low_rank_full_training_rank5_20260626_1427",
+  "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "rank": 5,
+  "device": "cpu"
+}

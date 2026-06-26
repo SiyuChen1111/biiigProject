@@ -1,0 +1,11 @@
+seed,role,selected_feature,corr,aligned_latent
+0,amplitude_like_latent,aligned_z2_late_mean,0.9438457489013672,aligned_z2
+0,slope_like_latent,aligned_z2_slope,0.9487459846516813,aligned_z2
+1,amplitude_like_latent,aligned_z2_late_mean,0.9418936967849731,aligned_z2
+1,slope_like_latent,aligned_z2_slope,0.943193382048273,aligned_z2
+2,amplitude_like_latent,aligned_z2_late_mean,0.9166853427886963,aligned_z2
+2,slope_like_latent,aligned_z2_slope,0.9148388509078249,aligned_z2
+3,amplitude_like_latent,aligned_z3_late_mean,0.9279135465621948,aligned_z3
+3,slope_like_latent,aligned_z3_slope,0.9338941896148746,aligned_z3
+4,amplitude_like_latent,aligned_z2_late_mean,0.9502128958702087,aligned_z2
+4,slope_like_latent,aligned_z2_slope,0.9489508975319031,aligned_z2

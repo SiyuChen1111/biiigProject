@@ -1,0 +1,11 @@
+seed,test,approx_delta_cv_r2
+0,z_predicts_RT_residual_after_CPP,0.02449769435165894
+0,CPP_predicts_RT_residual_after_z,-0.004164167536304553
+1,z_predicts_RT_residual_after_CPP,0.004722455157676997
+1,CPP_predicts_RT_residual_after_z,-0.004023777066746059
+2,z_predicts_RT_residual_after_CPP,0.007545381486826597
+2,CPP_predicts_RT_residual_after_z,-0.0018024925599451347
+3,z_predicts_RT_residual_after_CPP,0.00893021855520515
+3,CPP_predicts_RT_residual_after_z,0.004999929798978675
+4,z_predicts_RT_residual_after_CPP,-0.0004702512879770637
+4,CPP_predicts_RT_residual_after_z,-0.003053820077757896

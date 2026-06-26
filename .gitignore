@@ -19,6 +19,16 @@ Results/validation/hidden_cpp_audit/hidden_to_cpp_fold_predictions.csv
 Results/low_rank_rnn_smoke/sampled_dataset/
 Results/low_rank_rnn_smoke/rank_*/model.pt
 Results/low_rank_rnn_smoke/rank_*/low_rank_latents_test.npz
+Results/archive_exploratory_low_rank/
+Results/**/checkpoints/
+Results/**/latent_exports/
+Results/**/logs/
+Results/**/__pycache__/
+*.pt
+*.pth
+*.ckpt
+*.npy
+*.npz
 
 # Python build/runtime artifacts
 __pycache__/
