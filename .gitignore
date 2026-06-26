@@ -16,6 +16,9 @@ outputs/**/*.pt
 stage2_YuYNet/evidence/dataset_fixed_forward_gru_clean/stage2/latents_train.npz
 stage2_YuYNet/dataset_fixed/latents_full/latents_full.npz
 Results/validation/hidden_cpp_audit/hidden_to_cpp_fold_predictions.csv
+Results/low_rank_rnn_smoke/sampled_dataset/
+Results/low_rank_rnn_smoke/rank_*/model.pt
+Results/low_rank_rnn_smoke/rank_*/low_rank_latents_test.npz
 
 # Python build/runtime artifacts
 __pycache__/

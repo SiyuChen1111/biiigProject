@@ -29,10 +29,12 @@ from training.controls import run_minimal_controls
 from modeling.data_contract import validate_stage2_dataset
 from modeling.dataset import EEGWindowDataset, load_stage2_dataset, make_dataloaders
 from modeling.model import CPPForwardGRU, ForwardOutputs, masked_self_supervised_loss
+from modeling.low_rank_model import CPPLowRankRNN, LowRankRNNConfig, low_rank_self_supervised_loss
 from modeling.preparation import audit_preliminary_stage2_dataset, prepare_stage2_dataset_package
 from analysis.rt_ridge import run_ridge_rt_analysis
 from training.sweep import run_small_cpp_prior_sweep
 from training.train import export_full_latents_from_checkpoint, train_model
+from training.low_rank_smoke import run_low_rank_smoke
 
 
 # =============================================================================
@@ -206,6 +208,44 @@ class TestModelAndLoss(unittest.TestCase):
         loss, metrics = masked_self_supervised_loss(out, x, x, mask, times_ms, cfg.loss)
         self.assertEqual(metrics["monotonic_loss"], 0.0)
         self.assertEqual(metrics["slope_floor_loss"], 0.0)
+
+
+class TestLowRankModelAndSmoke(unittest.TestCase):
+    """Verify the exploratory low-rank RNN smoke path."""
+
+    def test_low_rank_forward_and_loss(self) -> None:
+        cfg = TrainingConfig(loss=LossWeights(enable_cpp_shape_prior=False))
+        model = CPPLowRankRNN(n_channels=3, config=LowRankRNNConfig(rank=3, population_dim=12))
+        x = torch.randn(4, 20, 3)
+        out = model(x)
+        self.assertEqual(out.reconstructed.shape, (4, 20, 3))
+        self.assertEqual(out.predicted.shape, (4, 20, 3))
+        self.assertEqual(out.latents.shape, (4, 20, 3))
+        mask = torch.ones(4, 20, dtype=torch.bool)
+        times_ms = torch.linspace(-200.0, 580.0, 20)
+        loss, metrics = low_rank_self_supervised_loss(out, x, x, mask, times_ms, cfg.loss)
+        self.assertEqual(loss.shape, ())
+        self.assertIn("total_loss", metrics)
+
+    def test_low_rank_smoke_runs_and_saves_outputs(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            dataset_dir = _make_synthetic_dataset(root, n_trials=12, n_timepoints=30)
+            summary = run_low_rank_smoke(
+                dataset_dir=dataset_dir,
+                output_dir=root / "low_rank_smoke",
+                ranks=(2,),
+                max_trials=12,
+                max_epochs=1,
+                batch_size=4,
+                population_dim=8,
+                seed=3,
+            )
+            self.assertEqual(summary["ranks"], [2])
+            self.assertTrue((root / "low_rank_smoke" / "low_rank_smoke_metrics.csv").exists())
+            self.assertTrue((root / "low_rank_smoke" / "rank_2" / "metrics.csv").exists())
+            self.assertTrue((root / "low_rank_smoke" / "rank_2" / "cpp_average_reconstruction.png").exists())
+            self.assertTrue((root / "low_rank_smoke" / "rank_2" / "latent_trajectories_by_group.png").exists())
 
 
 # =============================================================================

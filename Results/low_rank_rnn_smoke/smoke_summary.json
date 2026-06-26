@@ -1,0 +1,31 @@
+{
+  "purpose": "Exploratory smoke test for low-rank RNN CPP modeling.",
+  "dataset_dir": "Data/ProcessedData",
+  "sampled_dataset_dir": "Results/low_rank_rnn_smoke/sampled_dataset",
+  "output_dir": "Results/low_rank_rnn_smoke",
+  "ranks": [
+    2,
+    3,
+    5
+  ],
+  "max_trials": 1200,
+  "max_epochs": 12,
+  "batch_size": 64,
+  "population_dim": 64,
+  "seed": 42,
+  "device": "cpu",
+  "rank_reports": [
+    {
+      "rank": 2,
+      "final_val_loss": 1.4348169565200806
+    },
+    {
+      "rank": 3,
+      "final_val_loss": 0.9761089285214742
+    },
+    {
+      "rank": 5,
+      "final_val_loss": 0.7882241209348043
+    }
+  ]
+}
