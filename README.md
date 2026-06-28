@@ -12,7 +12,7 @@ The repository is organized as a complete course-style data analysis project. It
 - saved figures and result tables
 - tests for core pipeline components
 
-The main workflow uses a causal forward GRU model trained on response-locked EEG from the CPP-related channels `CP1`, `CP2`, and `CPz`.
+The original main workflow uses a causal forward GRU model trained on response-locked EEG from the CPP-related channels `CP1`, `CP2`, and `CPz`. A newer Rank-5 low-rank RNN notebook has also been added as a compact latent-state analysis path for studying whether five learned `z` variables can support more interpretable follow-up analyses of CPP dynamics, response time, and drift-rate-like evidence accumulation.
 
 ## 2. Research Question
 
@@ -20,6 +20,7 @@ This project addresses two linked questions:
 
 1. Can a neural network reconstruct and preserve key CPP-related EEG structure from single-trial response-locked signals?
 2. Do the learned hidden representations contain useful information about behavioural response time beyond simple baseline covariates?
+3. In the newer low-rank RNN analysis, can compact Rank-5 latent variables support follow-up tests of drift rate and evidence accumulation beyond conventional CPP amplitude and CPP slope summaries?
 
 The project is not a paper replication assignment. It is presented as an original analysis project built around EEG latent dynamics and behaviour.
 
@@ -30,6 +31,8 @@ The repository uses a course-friendly folder layout so that data, code, results,
 ```text
 biiigProject/
 ├── README.md                         # Main project report and usage guide
+├── low_rank_rnn_drift_rate_followup_plan.md
+│                                      # Follow-up plan for z variables, CPP, and drift rate
 ├── requirements.txt                  # Python dependencies with pinned versions
 ├── AGENTS.md                         # Project routing and workspace rules
 ├── logs.md                           # Dated experiment and decision log
@@ -44,6 +47,10 @@ biiigProject/
 │       └── latents_full/             # Exported hidden-state representations
 ├── Scripts/
 │   ├── master_pipeline.ipynb         # Recommended main entry point
+│   ├── low_rank_rnn_rank5_pipeline.ipynb
+│   │                                  # Self-contained Rank-5 low-rank RNN notebook
+│   ├── low_rank_rnn_rank5_pipeline.executed.ipynb
+│   │                                  # Executed copy of the Rank-5 low-rank RNN notebook
 │   ├── pipeline_overview.md          # Written stage-by-stage pipeline description
 │   ├── s0_preprocessing/             # Dataset construction and preprocessing scripts
 │   ├── s1_modeling/                  # Model, dataset loading, and data checks
@@ -87,6 +94,12 @@ Main intermediate representation:
 
 - `Data/IntermediateData/latents_full/latents_full.npz`
 
+The Rank-5 low-rank RNN notebook writes its generated checkpoints, figures, tables, and latent exports to a timestamped temporary run directory under:
+
+- `tmp/low_rank_r5_notebook_runs/<timestamp>/`
+
+This keeps exploratory low-rank outputs separate from the existing saved GRU results.
+
 ### 4.2 Dataset Size
 
 The current processed dataset contains:
@@ -103,6 +116,10 @@ Array shape of the main EEG file:
 Array shape of the latent representation:
 
 - `latents_full.npz["latents"]`: `(7297, 308, 32)`
+
+The Rank-5 low-rank RNN notebook exports compact low-rank latent states with shape:
+
+- `latents_low_rank_r5.npz["latents"]`: `(7297, 308, 5)`
 
 ### 4.3 Main Variables
 
@@ -184,6 +201,21 @@ This stage includes:
 - baseline-versus-hidden comparison
 - saved plots and result tables
 
+### 5.5 Rank-5 Low-Rank RNN Analysis
+
+The newer low-rank RNN notebook provides a self-contained alternative model and analysis workflow. It fixes the recurrent latent dimension at Rank 5 and exposes five low-rank latent variables, `z1` through `z5`, at every trial and time point.
+
+This workflow includes:
+
+- self-supervised training, validation, and held-out testing
+- latent export for `z1`-`z5`
+- publication-style diagnostic figures
+- subject-aware ridge regression for response-time prediction
+- fold-level metrics, confidence intervals, permutation controls, and shuffled-z controls
+- time-resolved z-RT correlations and z/CPP/behaviour correlation summaries
+
+The purpose of this branch is not to claim that the z variables are CPP or drift rate directly. Instead, it provides a compact latent-state representation that may be useful for the next mechanistic analysis.
+
 ## 6. Main Results
 
 ### 6.1 Core Results
@@ -222,6 +254,18 @@ Additional checks help define what the model does and does not capture well.
 
 These supplementary results strengthen the interpretation that the model is more successful at preserving CPP-related and broad RT-related structure than at capturing fine-grained task identity.
 
+### 6.3 Current Low-Rank RNN Status
+
+The Rank-5 low-rank RNN notebook successfully trains a compact model and exports latent states with shape `(7297, 308, 5)`. The latest executed notebook also adds paper-style figures and more careful behavioural statistics, including subject-aware cross-validation and shuffled-z controls.
+
+The current interpretation is cautious:
+
+- Rank-5 z variables appear useful as compact summaries of trial-level neural dynamics.
+- They may be better suited than the earlier full GRU hidden states for follow-up drift-rate analysis because they are lower-dimensional and easier to inspect.
+- They should not yet be interpreted as direct CPP components, direct DDM parameters, or proven drift-rate estimates.
+
+The next planned analysis is described in `low_rank_rnn_drift_rate_followup_plan.md`. It focuses on whether z variables explain drift rate or evidence accumulation beyond conventional CPP amplitude and CPP slope summaries.
+
 ## 7. How to Run
 
 ### 7.1 Environment
@@ -247,14 +291,34 @@ jupyter notebook Scripts/master_pipeline.ipynb
 
 This notebook is the clearest reviewer-facing entry point because it walks through the pipeline step by step.
 
+For the Rank-5 low-rank RNN workflow, open:
+
+```bash
+jupyter notebook Scripts/low_rank_rnn_rank5_pipeline.ipynb
+```
+
+The executed copy is available at:
+
+```text
+Scripts/low_rank_rnn_rank5_pipeline.executed.ipynb
+```
+
+The follow-up analysis plan is:
+
+```text
+low_rank_rnn_drift_rate_followup_plan.md
+```
+
 ### 7.3 Shortest Reviewer Path
 
 For a reviewer or course instructor opening the repository for the first time:
 
 1. Open `README.md`
 2. Open `Scripts/master_pipeline.ipynb`
-3. Inspect the saved outputs in `Results/validation/` and `Results/regression/`
-4. Run the tests if needed
+3. Open `Scripts/low_rank_rnn_rank5_pipeline.executed.ipynb` for the newer compact low-rank latent analysis
+4. Read `low_rank_rnn_drift_rate_followup_plan.md` for the planned CPP / evidence accumulation / drift-rate analysis
+5. Inspect the saved outputs in `Results/validation/` and `Results/regression/`
+6. Run the tests if needed
 
 Test command:
 
@@ -313,7 +377,8 @@ This project has several important limitations that should be stated clearly.
 - The repository is strongest as a structured analysis submission with saved outputs, processed data description, and runnable code, rather than as a fully self-contained large-data archive.
 - Some auxiliary decoding results are weak or near chance, especially for choice and condition.
 - The project supports cautious claims about CPP-related neural structure and response-time association, not overly strong claims about all task variables.
-- One originally listed direction, DDM regression, is not yet completed in the current README status summary.
+- Drift-rate and DDM-style analyses are now framed as the next planned mechanism-validation step rather than as completed evidence.
+- The Rank-5 low-rank z variables should be treated as compact latent-state summaries, not as proven CPP components or direct drift-rate parameters.
 
 ## 10. References
 
