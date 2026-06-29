@@ -34,6 +34,10 @@ biiigProject/
 │
 ├── Scripts/
 │   ├── master_pipeline.ipynb       ← interactive master script (run me!)
+│   ├── low_rank_rnn_rank5_pipeline.ipynb
+│   │                                ← Rank-5 CPP-prior low-rank comparison workflow
+│   ├── low_rank_rnn_rank5_no_cpp_prior_ablation.ipynb
+│   │                                ← Rank-5 no-CPP-prior low-rank workflow
 │   ├── pipeline_overview.md        ← THIS FILE
 │   │
 │   ├── s0_preprocessing/
@@ -62,6 +66,8 @@ biiigProject/
 │       ├── __init__.py
 │       ├── rt_ridge.py             run_ridge_rt_analysis
 │       ├── analysis.py             PCA · latent readout
+│       ├── rank5_dual_prior_comparison.py
+│       ├── low_rank_no_cpp_prior_prediction_quality.py
 │       ├── make_publication_figures.py
 │       └── notebooks/
 │           └── 2_beh_z_reg.ipynb
@@ -77,6 +83,8 @@ biiigProject/
 │   │   └── hidden_cpp_audit/
 │   ├── regression/
 │   │   └── ridge_rt_hidden_rt_rerun/
+│   ├── rank5_dual_prior_comparison/
+│   │   └── no-prior vs CPP-prior Rank-5 z comparison
 │   └── figures/
 │       ├── publication/            ← Figure 2, Supplementary S1
 │       └── diagnostic/
@@ -238,6 +246,51 @@ Compares trained model against:
 
 ---
 
+### S5 · Rank-5 Low-Rank RNN Dual-Prior Analysis
+**Notebooks:**
+- `Scripts/low_rank_rnn_rank5_no_cpp_prior_ablation.ipynb`
+- `Scripts/low_rank_rnn_rank5_pipeline.ipynb`
+
+**Comparison script:** `Scripts/s4_analysis/rank5_dual_prior_comparison.py`
+**Output:** `Results/rank5_dual_prior_comparison/`
+
+The current low-rank RNN analysis uses two Rank-5 versions in parallel:
+
+| Version | Role | Latest run |
+|---------|------|------------|
+| no CPP shape prior | cleaner representation analysis | `tmp/low_rank_r5_no_cpp_prior_notebook_runs/20260629_100551/` |
+| CPP shape prior | theory-guided comparison | `tmp/low_rank_r5_notebook_runs/20260628_154318/` |
+
+Both versions expose five latent variables, `z1`-`z5`, for the same response-locked trials.
+The primary analysis windows are:
+
+| Window | Time range |
+|--------|------------|
+| early | `-600` to `-300 ms` |
+| mid | `-300` to `-120 ms` |
+| late | `-120` to `-50 ms` |
+| full | `-600` to `-50 ms` |
+
+The `-1000` to `-600 ms` interval is a quality-check/background window only.
+It is not used as a main RT, CPP, or drift-rate interpretation window.
+
+The dual-prior comparison currently summarizes:
+- z-only RT prediction
+- baseline+z versus baseline
+- baseline+CPP+z versus baseline+CPP
+- shuffled-z controls
+- time-resolved z-RT correlations
+- z/CPP/behaviour correlation summaries
+
+The current processed metadata do not include a drift-rate estimate, so drift-rate
+regression remains the next analysis after drift estimates are added.
+
+**Key interpretation rule:** no-prior z is the cleaner representation analysis;
+CPP-prior z is the theory-guided comparison. Emphasize only findings that are
+directionally stable across both versions and survive CPP/shuffled-z controls.
+
+---
+
 ## Quick-Reference CLI Commands
 
 ```bash
@@ -267,8 +320,17 @@ pytest
 
 # Open interactive master script
 jupyter notebook Scripts/master_pipeline.ipynb
+
+# Open Rank-5 no-CPP-prior low-rank workflow
+jupyter notebook Scripts/low_rank_rnn_rank5_no_cpp_prior_ablation.ipynb
+
+# Compare no-prior and CPP-prior Rank-5 outputs
+python Scripts/s4_analysis/rank5_dual_prior_comparison.py \
+    --cpp-prior-run tmp/low_rank_r5_notebook_runs/20260628_154318 \
+    --no-prior-run tmp/low_rank_r5_no_cpp_prior_notebook_runs/20260629_100551 \
+    --output-dir Results/rank5_dual_prior_comparison
 ```
 
 ---
 
-*Last updated: 2026-06-14*
+*Last updated: 2026-06-29*

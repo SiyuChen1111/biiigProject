@@ -1,0 +1,9 @@
+model_version,target,latent,correlation
+cpp_prior,CPP amplitude,z5_mean,-0.7475806847683497
+cpp_prior,CPP slope,z3_mean,0.158009457295813
+cpp_prior,Late CPP amplitude,z5_mean,-0.5617081493707164
+cpp_prior,RT,z1_mean,0.0929254532332424
+no_prior,CPP amplitude,z5_mean,-0.7513517432898119
+no_prior,CPP slope,z3_mean,0.1573004033711223
+no_prior,Late CPP amplitude,z5_mean,-0.5642227425733906
+no_prior,RT,z1_mean,0.0948422099180873

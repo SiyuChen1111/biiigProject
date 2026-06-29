@@ -1,0 +1,31 @@
+{
+  "cpp_prior_run": "tmp/low_rank_r5_notebook_runs/20260628_154318",
+  "drift_rate_status": "not_run_no_drift_rate_column_found_in_current_metadata",
+  "no_prior_run": "tmp/low_rank_r5_no_cpp_prior_notebook_runs/20260629_100551",
+  "output_dir": "Results/rank5_dual_prior_comparison",
+  "outputs": [
+    "dual_prior_delta_ci.csv",
+    "dual_prior_delta_consistency.csv",
+    "dual_prior_delta_r2_forestplot.pdf",
+    "dual_prior_delta_r2_forestplot.png",
+    "dual_prior_delta_r2_forestplot.svg",
+    "dual_prior_interpretation.md",
+    "dual_prior_performance.csv",
+    "dual_prior_strongest_z_cpp_behavior.csv",
+    "dual_prior_strongest_z_rt.csv",
+    "dual_prior_z_cpp_behavior.csv",
+    "dual_prior_z_cpp_behavior_heatmaps.pdf",
+    "dual_prior_z_cpp_behavior_heatmaps.png",
+    "dual_prior_z_cpp_behavior_heatmaps.svg",
+    "dual_prior_z_rt.csv",
+    "dual_prior_z_rt_time_resolved_overlay.pdf",
+    "dual_prior_z_rt_time_resolved_overlay.png",
+    "dual_prior_z_rt_time_resolved_overlay.svg"
+  ],
+  "primary_windows": [
+    "early (-600 to -300 ms)",
+    "mid (-300 to -120 ms)",
+    "late (-120 to -50 ms)",
+    "full (-600 to -50 ms)"
+  ]
+}

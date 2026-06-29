@@ -2,11 +2,18 @@
 
 ## Purpose
 
-The Rank-5 low-rank RNN notebook suggests that the learned z variables are not only useful as RT predictors. Compared with the earlier GRU latent representation, the low-rank z variables are more compact, interpretable, and potentially better suited for testing whether CPP-related latent dynamics are connected to drift rate and evidence accumulation.
+The Rank-5 low-rank RNN notebooks suggest that the learned z variables are not only useful as RT predictors. Compared with the earlier GRU latent representation, the low-rank z variables are more compact, interpretable, and potentially better suited for testing whether CPP-related latent dynamics are connected to drift rate and evidence accumulation.
+
+The next analysis should use two Rank-5 z sources in parallel:
+
+- `rank5_no_cpp_prior`: the no-CPP-shape-prior model, used as the cleaner representation analysis.
+- `rank5_cpp_prior`: the original CPP-shape-prior model, retained as a theory-guided robustness comparison.
+
+The no-prior result should be treated as the primary interpretive anchor, but paper-facing claims should emphasize effects that are directionally stable across both versions and survive CPP and shuffled-z controls.
 
 The next analysis should therefore move from prediction to mechanism:
 
-> Do Rank-5 z variables explain drift rate or evidence-accumulation dynamics beyond conventional CPP amplitude and CPP slope summaries?
+> Do Rank-5 z variables, in both no-prior and CPP-prior versions, explain drift rate or evidence-accumulation dynamics beyond conventional CPP amplitude and CPP slope summaries?
 
 This should be tested with residual regression, partial regression, and nested model comparison rather than simple raw correlation.
 
@@ -27,6 +34,8 @@ The main analysis should therefore ask whether z variables explain drift-rate-re
 ## Required Data Level
 
 The z variables and drift-rate estimates must be aligned at the same analysis level.
+
+The current processed metadata do not yet contain a drift-rate estimate column. Until drift estimates are added, the completed dual-prior analyses should be treated as RT/CPP representation checks rather than final drift-rate evidence.
 
 If drift rate is available at the subject-condition level, aggregate z variables to subject-condition level before modeling:
 
@@ -62,6 +71,29 @@ full: -600 to  -50 ms
 
 The early and late windows should be treated as the main planned comparisons because prior Rank-5 analyses suggested that the clearest baseline+z improvement appears in early and late response-locked periods.
 
+Do not include `-1000 to -600 ms` in the main drift-rate or RT/CPP mechanism tests. That interval is a quality-check/background window only. The no-prior prediction-quality check showed weaker far-baseline reconstruction than the planned `-600 to -50 ms` analysis window, so the main interpretation should stay inside the planned pre-response interval.
+
+## Dual-Prior Analysis Rule
+
+Every planned z-space analysis should produce a model-version column:
+
+```text
+model_version: no_prior | cpp_prior
+```
+
+Run the same analysis for both latent exports using identical windows, subject-aware cross-validation, baseline variables, CPP covariates, and shuffled-z controls.
+
+Core comparisons:
+
+```text
+no_prior baseline+z       - no_prior baseline
+cpp_prior baseline+z      - cpp_prior baseline
+no_prior baseline+CPP+z   - no_prior baseline+CPP
+cpp_prior baseline+CPP+z  - cpp_prior baseline+CPP
+```
+
+The strongest conclusion is reserved for effects that have the same direction across both versions and do not appear in shuffled-z controls.
+
 ## Analysis Step 1: Exploratory Partial Correlation
 
 Create a partial-correlation heatmap:
@@ -75,6 +107,8 @@ controls:
   condition
   CPP amplitude
   CPP slope
+split/facet:
+  model_version = no_prior vs cpp_prior
 ```
 
 This plot should answer:
@@ -84,10 +118,10 @@ This plot should answer:
 Recommended output:
 
 ```text
-z_drift_partial_correlation_heatmap.pdf
-z_drift_partial_correlation_heatmap.svg
-z_drift_partial_correlation_heatmap.png
-z_drift_partial_correlation_table.csv
+dual_prior_z_drift_partial_correlation_heatmap.pdf
+dual_prior_z_drift_partial_correlation_heatmap.svg
+dual_prior_z_drift_partial_correlation_heatmap.png
+dual_prior_z_drift_partial_correlation_table.csv
 ```
 
 ## Analysis Step 2: Residual Scatter Plot
@@ -115,10 +149,10 @@ This figure is useful for publication because it directly visualizes the questio
 Recommended output:
 
 ```text
-residual_z_vs_drift_scatter.pdf
-residual_z_vs_drift_scatter.svg
-residual_z_vs_drift_scatter.png
-residual_z_vs_drift_scatter_data.csv
+dual_prior_residual_z_vs_drift_scatter.pdf
+dual_prior_residual_z_vs_drift_scatter.svg
+dual_prior_residual_z_vs_drift_scatter.png
+dual_prior_residual_z_vs_drift_scatter_data.csv
 ```
 
 ## Analysis Step 3: Nested Regression / Delta R2 Forest Plot
@@ -158,14 +192,16 @@ baseline + CPP + z - baseline + CPP
 
 If `baseline + CPP + z - baseline + CPP > 0`, this suggests that z variables contain drift-rate-relevant information not fully captured by conventional CPP amplitude and slope.
 
+Interpret the contrast separately for no-prior and CPP-prior z. A positive result in both versions is stronger evidence than a result that appears only in the CPP-prior model.
+
 Recommended output:
 
 ```text
-drift_delta_r2_forestplot.pdf
-drift_delta_r2_forestplot.svg
-drift_delta_r2_forestplot.png
-drift_nested_model_performance.csv
-drift_delta_r2_ci.csv
+dual_prior_drift_delta_r2_forestplot.pdf
+dual_prior_drift_delta_r2_forestplot.svg
+dual_prior_drift_delta_r2_forestplot.png
+dual_prior_drift_nested_model_performance.csv
+dual_prior_drift_delta_r2_ci.csv
 ```
 
 ## Analysis Step 4: Standardized Beta Forest Plot
@@ -187,10 +223,10 @@ Generate this separately for the primary early and late windows.
 Recommended output:
 
 ```text
-drift_z_standardized_beta_forestplot.pdf
-drift_z_standardized_beta_forestplot.svg
-drift_z_standardized_beta_forestplot.png
-drift_z_standardized_beta_table.csv
+dual_prior_drift_z_standardized_beta_forestplot.pdf
+dual_prior_drift_z_standardized_beta_forestplot.svg
+dual_prior_drift_z_standardized_beta_forestplot.png
+dual_prior_drift_z_standardized_beta_table.csv
 ```
 
 ## Multiple Comparison Control
@@ -205,6 +241,8 @@ Use false-discovery-rate correction for exploratory partial correlations, and ke
 
 For the final conclusion, emphasize multivariate model comparison rather than isolated z-by-window correlations.
 
+Also emphasize cross-version stability. A raw no-prior-only or CPP-prior-only peak should be treated as exploratory unless it is supported by nested model comparison and controls.
+
 ## Interpretation Guide
 
 ### Result Pattern 1: z predicts drift after CPP controls
@@ -216,6 +254,8 @@ Interpretation:
 Chinese summary:
 
 > z variables 捕捉到了传统 CPP 指标没有完全表达的证据积累速度相关信息。
+
+Strongest version of this result: the same conclusion appears for both no-prior and CPP-prior z.
 
 ### Result Pattern 2: z relates to drift, but disappears after CPP controls
 
@@ -247,11 +287,31 @@ Chinese summary:
 
 > early z 可能捕捉较早出现的证据质量、难度或初始积累状态，而不是单纯晚期 CPP slope。
 
+### Result Pattern 5: only CPP-prior z predicts drift
+
+Interpretation:
+
+> The result should be framed as theory-guided reconstruction rather than autonomous mechanistic discovery.
+
+Chinese summary:
+
+> 如果只有 CPP-prior 版本有效，说明结果可能依赖 CPP 形状引导，机制解释要降级。
+
+### Result Pattern 6: no-prior and CPP-prior z agree
+
+Interpretation:
+
+> The low-rank z result is less likely to be an artifact of CPP-shape-prior training and is more suitable for cautious mechanism-facing interpretation.
+
+Chinese summary:
+
+> 两个版本方向一致时，说明 z 结果不太可能只是 CPP 形状先验塑造出来的。
+
 ## Recommended Final Framing
 
 The next paper-facing claim should remain cautious:
 
-> Rank-5 low-rank latent variables may capture evidence-accumulation-related neural dynamics that are not fully summarized by conventional CPP amplitude and slope measures.
+> Rank-5 low-rank latent variables may capture evidence-accumulation-related neural dynamics that are not fully summarized by conventional CPP amplitude and slope measures, especially when no-prior and CPP-prior analyses agree.
 
 Avoid claiming:
 
@@ -264,7 +324,7 @@ z variables are direct DDM parameters
 Preferred phrasing:
 
 ```text
-z variables provide a compact latent-state readout for testing whether CPP-related neural dynamics track evidence accumulation and drift-rate-like variation.
+z variables provide compact latent-state readouts for testing whether CPP-related neural dynamics track evidence accumulation and drift-rate-like variation. The no-prior model is the cleaner representation analysis; the CPP-prior model is the theory-guided comparison.
 ```
 
 Short cautious claim:

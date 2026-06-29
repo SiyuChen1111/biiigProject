@@ -12,7 +12,7 @@ The repository is organized as a complete course-style data analysis project. It
 - saved figures and result tables
 - tests for core pipeline components
 
-The original main workflow uses a causal forward GRU model trained on response-locked EEG from the CPP-related channels `CP1`, `CP2`, and `CPz`. A newer Rank-5 low-rank RNN notebook has also been added as a compact latent-state analysis path for studying whether five learned `z` variables can support more interpretable follow-up analyses of CPP dynamics, response time, and drift-rate-like evidence accumulation.
+The original main workflow uses a causal forward GRU model trained on response-locked EEG from the CPP-related channels `CP1`, `CP2`, and `CPz`. A newer Rank-5 low-rank RNN workflow has also been added as a compact latent-state analysis path for studying whether five learned `z` variables can support more interpretable follow-up analyses of CPP dynamics, response time, and drift-rate-like evidence accumulation. The current low-rank follow-up uses two Rank-5 versions in parallel: a no-CPP-shape-prior model as the cleaner representation analysis, and the original CPP-prior model as a theory-guided comparison.
 
 ## 2. Research Question
 
@@ -94,9 +94,10 @@ Main intermediate representation:
 
 - `Data/IntermediateData/latents_full/latents_full.npz`
 
-The Rank-5 low-rank RNN notebook writes its generated checkpoints, figures, tables, and latent exports to a timestamped temporary run directory under:
+The Rank-5 low-rank RNN notebooks write generated checkpoints, figures, tables, and latent exports to timestamped temporary run directories under:
 
 - `tmp/low_rank_r5_notebook_runs/<timestamp>/`
+- `tmp/low_rank_r5_no_cpp_prior_notebook_runs/<timestamp>/`
 
 This keeps exploratory low-rank outputs separate from the existing saved GRU results.
 
@@ -120,6 +121,7 @@ Array shape of the latent representation:
 The Rank-5 low-rank RNN notebook exports compact low-rank latent states with shape:
 
 - `latents_low_rank_r5.npz["latents"]`: `(7297, 308, 5)`
+- `latents_low_rank_r5_no_cpp_prior.npz["latents"]`: `(7297, 308, 5)`
 
 ### 4.3 Main Variables
 
@@ -214,7 +216,12 @@ This workflow includes:
 - fold-level metrics, confidence intervals, permutation controls, and shuffled-z controls
 - time-resolved z-RT correlations and z/CPP/behaviour correlation summaries
 
-The purpose of this branch is not to claim that the z variables are CPP or drift rate directly. Instead, it provides a compact latent-state representation that may be useful for the next mechanistic analysis.
+The current low-rank analysis compares two versions of the same Rank-5 architecture:
+
+- `rank5_no_cpp_prior`: CPP-shape-prior losses disabled; used as the cleaner representation analysis.
+- `rank5_cpp_prior`: original CPP-shape-prior version; retained as a theory-guided robustness comparison.
+
+The main interpretation focuses on the planned response-locked windows from `-600` to `-50 ms`. The earlier `-1000` to `-600 ms` interval is used only as a quality-check/background window, not as a main mechanism window. The purpose of this branch is not to claim that the z variables are CPP or drift rate directly. Instead, it provides compact latent-state representations for testing whether CPP-related neural dynamics track behaviour and later drift-rate-like variation.
 
 ## 6. Main Results
 
@@ -256,12 +263,21 @@ These supplementary results strengthen the interpretation that the model is more
 
 ### 6.3 Current Low-Rank RNN Status
 
-The Rank-5 low-rank RNN notebook successfully trains a compact model and exports latent states with shape `(7297, 308, 5)`. The latest executed notebook also adds paper-style figures and more careful behavioural statistics, including subject-aware cross-validation and shuffled-z controls.
+The Rank-5 low-rank RNN workflow successfully trains compact models and exports latent states with shape `(7297, 308, 5)`. The latest executed notebooks also add paper-style figures and more careful behavioural statistics, including subject-aware cross-validation and shuffled-z controls.
+
+Current low-rank runs:
+
+- CPP-prior comparison run: `tmp/low_rank_r5_notebook_runs/20260628_154318/`
+- no-CPP-prior run: `tmp/low_rank_r5_no_cpp_prior_notebook_runs/20260629_100551/`
+- dual-prior comparison outputs: `Results/rank5_dual_prior_comparison/`
+
+The dual-prior comparison found broadly consistent RT-prediction patterns across no-prior and CPP-prior z variables. Shuffled-z controls stayed near zero, and at least one planned window showed positive `baseline+CPP+z` improvement over `baseline+CPP` in both versions.
 
 The current interpretation is cautious:
 
 - Rank-5 z variables appear useful as compact summaries of trial-level neural dynamics.
 - They may be better suited than the earlier full GRU hidden states for follow-up drift-rate analysis because they are lower-dimensional and easier to inspect.
+- No-prior z is treated as the cleaner representation analysis; CPP-prior z is treated as a theory-guided comparison.
 - They should not yet be interpreted as direct CPP components, direct DDM parameters, or proven drift-rate estimates.
 
 The next planned analysis is described in `low_rank_rnn_drift_rate_followup_plan.md`. It focuses on whether z variables explain drift rate or evidence accumulation beyond conventional CPP amplitude and CPP slope summaries.
@@ -297,10 +313,17 @@ For the Rank-5 low-rank RNN workflow, open:
 jupyter notebook Scripts/low_rank_rnn_rank5_pipeline.ipynb
 ```
 
+For the no-CPP-prior Rank-5 ablation and current cleaner representation analysis, open:
+
+```bash
+jupyter notebook Scripts/low_rank_rnn_rank5_no_cpp_prior_ablation.ipynb
+```
+
 The executed copy is available at:
 
 ```text
 Scripts/low_rank_rnn_rank5_pipeline.executed.ipynb
+Scripts/low_rank_rnn_rank5_no_cpp_prior_ablation.executed.ipynb
 ```
 
 The follow-up analysis plan is:
@@ -315,9 +338,9 @@ For a reviewer or course instructor opening the repository for the first time:
 
 1. Open `README.md`
 2. Open `Scripts/master_pipeline.ipynb`
-3. Open `Scripts/low_rank_rnn_rank5_pipeline.executed.ipynb` for the newer compact low-rank latent analysis
+3. Open `Scripts/low_rank_rnn_rank5_no_cpp_prior_ablation.executed.ipynb` for the cleaner no-prior compact low-rank latent analysis
 4. Read `low_rank_rnn_drift_rate_followup_plan.md` for the planned CPP / evidence accumulation / drift-rate analysis
-5. Inspect the saved outputs in `Results/validation/` and `Results/regression/`
+5. Inspect the saved outputs in `Results/validation/`, `Results/regression/`, and `Results/rank5_dual_prior_comparison/`
 6. Run the tests if needed
 
 Test command:

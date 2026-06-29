@@ -634,3 +634,38 @@ A 276-line written walkthrough in TIER 4.0 style. Includes: complete annotated f
 ### Next plan
 - Use the Rank-5 `z` variables for follow-up tests of CPP dynamics, response time, and drift-rate-like evidence accumulation.
 - Focus on whether `z` explains useful variation beyond subject/task baselines and conventional CPP amplitude/slope summaries.
+
+
+## 2026-06-29 — Rank-5 no-prior ablation and dual-prior comparison
+
+### What changed
+- Added and executed a no-CPP-shape-prior Rank-5 low-rank RNN workflow.
+- Added a prediction-quality check for the no-prior model.
+- Added a dual-prior comparison that summarizes no-prior and CPP-prior Rank-5 z results side by side.
+
+### Representative outputs
+- No-prior run: `tmp/low_rank_r5_no_cpp_prior_notebook_runs/20260629_100551/`
+- CPP-prior comparison run: `tmp/low_rank_r5_notebook_runs/20260628_154318/`
+- Dual-prior comparison: `Results/rank5_dual_prior_comparison/`
+- Prediction-quality check: `tmp/low_rank_r5_no_cpp_prior_notebook_runs/20260629_100551/Results/low_rank_r5_no_cpp_prior_prediction_quality/`
+
+### Main observations
+- The no-prior model disables CPP-shape-prior losses but keeps the same Rank-5 architecture and the same planned analysis windows.
+- No-prior and CPP-prior z variables show broadly consistent RT-prediction patterns.
+- Direction agreement across primary RT contrasts was `0.875`.
+- Shuffled-z controls stayed near zero in both versions.
+- The strongest z-RT relation in both versions was `z3` around `-554 ms`.
+- The strongest z-CPP relation in both versions was `z5_mean` with CPP amplitude.
+- The no-prior prediction-quality check showed better reconstruction in the planned `-600` to `-50 ms` analysis window than in the `-1000` to `-600 ms` far-baseline window.
+
+### Current decision
+- Use both no-prior and CPP-prior Rank-5 z variables in follow-up analyses.
+- Treat no-prior z as the cleaner representation analysis.
+- Treat CPP-prior z as the theory-guided robustness comparison.
+- Do not use `-1000` to `-600 ms` as a main RT, CPP, or drift-rate interpretation window.
+- Do not describe the low-rank model as a strong generative mechanism model; use it as a compact representation model unless future evidence warrants stronger language.
+
+### Next step
+- Add drift-rate estimates to the analysis table when available.
+- Run the same nested regression design for both no-prior and CPP-prior z.
+- Emphasize only effects that are directionally stable across both versions and survive CPP/shuffled-z controls.

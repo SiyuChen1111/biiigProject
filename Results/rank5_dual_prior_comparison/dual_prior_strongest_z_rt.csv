@@ -1,0 +1,3 @@
+model_version,latent,time_ms,correlation_with_log_rt
+cpp_prior,z3,-554.3973999023438,-0.1704030775239425
+no_prior,z3,-554.3973999023438,-0.1710914799223483
