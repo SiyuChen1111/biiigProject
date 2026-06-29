@@ -1,5 +1,17 @@
 # Project Reset Log
 
+## Current status note — Updated 2026-06-29
+
+This log preserves earlier project states as historical records. Some older
+entries refer to `stage2_YuYNet/`, which was the active working structure at
+that time. The current checkout now uses the root-level TIER-style structure:
+`Data/`, `Scripts/`, `Results/`, and `tests/`.
+
+The current main scientific and modeling line is the low-rank RNN workflow,
+especially the Rank-5 model and its five learned `z` variables (`z1`-`z5`).
+Earlier GRU hidden-state work remains useful background and comparison, but it
+is no longer the default main line for new analysis.
+
 ## 2026-05-12 — Repository reset around `stage2_YuYNet`
 
 ### What changed
@@ -554,3 +566,71 @@ A 276-line written walkthrough in TIER 4.0 style. Includes: complete annotated f
 1. Define a formal CPP-related latent axis from the hidden states (PCA or regression-based direction in latent space). Test cross-fold and cross-subject stability. Entry point: `Scripts/s4_analysis/analysis.py`.
 2. Test whether the CPP latent axis provides incremental RT prediction beyond hand-crafted CPP features (CPP amplitude + slope). This is the key unresolved scientific question. Entry point: modify `Scripts/s4_analysis/rt_ridge.py` to accept axis-projected features.
 3. Complete DDM drift-rate regression once the latent axis is validated. Entry point: new script under `Scripts/s4_analysis/`.
+
+
+## 2026-06-26 — Minimal low-rank RNN smoke test
+
+### What changed
+- Ran a minimal low-rank RNN smoke-test path across small candidate ranks.
+- Retained smoke-test outputs under `Results/low_rank_rnn_smoke/`.
+- Compared Rank 2, Rank 3, and Rank 5 on reconstruction and CPP feature checks.
+
+### Main observation
+- Rank 5 appeared most promising in the smoke test.
+- It had the strongest full-signal test reconstruction among the tested ranks.
+- It also showed the clearest CPP-average waveform reconstruction result in the smoke outputs.
+
+### Representative outputs
+- `Results/low_rank_rnn_smoke/low_rank_smoke_metrics.csv`
+- `Results/low_rank_rnn_smoke/rank_2/`
+- `Results/low_rank_rnn_smoke/rank_3/`
+- `Results/low_rank_rnn_smoke/rank_5/`
+
+### Interpretation
+- The smoke test did not establish a final scientific result.
+- It supported treating Rank 5 as the most useful next candidate for a fuller low-rank RNN workflow.
+
+
+## 2026-06-28 — Rank-5 low-rank RNN notebook updated and executed
+
+### What changed
+- Updated the self-contained Rank-5 low-rank RNN notebook.
+- Updated the executed notebook copy.
+- Added a full Rank-5 workflow that trains the low-rank model, exports compact latent states, generates diagnostics, and runs response-time analyses.
+
+### Current notebook files
+- `Scripts/low_rank_rnn_rank5_pipeline.ipynb`
+- `Scripts/low_rank_rnn_rank5_pipeline.executed.ipynb`
+
+### Current Rank-5 latent representation
+- The exported low-rank latent state has shape `7297 trials x 308 time points x 5 z variables`.
+- The five variables are treated as `z1` through `z5`.
+- These `z` variables are compact learned summaries of trial-level neural dynamics, not direct CPP components or direct DDM parameters.
+
+### Representative latest run
+- Run directory: `tmp/low_rank_r5_notebook_runs/20260628_154318/`
+- Latent export: `Data/IntermediateData/latents_low_rank_r5/latents_low_rank_r5.npz` inside that run directory.
+- Test metrics and diagnostic outputs were generated inside the same timestamped run directory.
+
+### Interpretation
+- The Rank-5 notebook moved the low-rank RNN path from a minimal smoke test to a fuller exploratory workflow.
+- The results suggested that Rank-5 `z` variables may carry response-time-relevant information beyond baseline and conventional CPP summaries.
+- This remains a cautious modeling result, not proof that the `z` variables are CPP or drift-rate parameters.
+
+
+## 2026-06-29 — Project guidance updated to prioritize low-rank RNN
+
+### What changed
+- Updated `AGENTS.md` to remove obsolete default routing to the old `stage2_YuYNet/` structure.
+- Updated `AGENTS.md` so new work defaults to the current root-level project structure.
+- Made the low-rank RNN, especially the Rank-5 `z1`-`z5` workflow, the priority main line for normal analysis and follow-up planning.
+
+### Current priority
+- Start from `README.md`.
+- Then prioritize `low_rank_rnn_drift_rate_followup_plan.md`.
+- Use the Rank-5 notebook and low-rank model code as the primary active workflow.
+- Treat the earlier GRU workflow as background or comparison unless a task explicitly asks for it.
+
+### Next plan
+- Use the Rank-5 `z` variables for follow-up tests of CPP dynamics, response time, and drift-rate-like evidence accumulation.
+- Focus on whether `z` explains useful variation beyond subject/task baselines and conventional CPP amplitude/slope summaries.
