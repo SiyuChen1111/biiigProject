@@ -1,0 +1,47 @@
+{
+  "channel_order_matches": true,
+  "contract": {
+    "expected_channel_order": [
+      "CP1",
+      "CP2",
+      "CPz"
+    ],
+    "expected_files": [
+      "eeg_cpp_trials.npy",
+      "metadata.csv",
+      "times_ms.npy",
+      "channel_names.txt",
+      "preprocessing_notes.md"
+    ],
+    "optional_aliases": {},
+    "required_metadata_columns": [
+      "trial_id",
+      "alignment"
+    ]
+  },
+  "dataset_dir": "/Users/hyijie/Desktop/My_projecting/biiigProject/Data/ProcessedData",
+  "file_checks": {
+    "channel_names.txt": true,
+    "eeg_cpp_trials.npy": true,
+    "metadata.csv": true,
+    "preprocessing_notes.md": true,
+    "times_ms.npy": true
+  },
+  "metadata_rows_match": true,
+  "missing_files": [],
+  "missing_metadata_columns": [],
+  "passed": true,
+  "preprocessing_policy_extract": {
+    "artifact_mentioned": true,
+    "baseline_mentioned": false,
+    "filter_mentioned": false,
+    "reference_mentioned": false
+  },
+  "sampling_rate_hz": 255.83332733545052,
+  "shape_summary": {
+    "n_channels": 3,
+    "n_timepoints": 308,
+    "n_trials": 7297
+  },
+  "times_match": true
+}

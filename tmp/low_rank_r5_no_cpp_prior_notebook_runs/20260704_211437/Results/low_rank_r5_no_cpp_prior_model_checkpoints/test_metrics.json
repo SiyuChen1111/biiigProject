@@ -1,0 +1,13 @@
+{
+  "test_cpp_mean_alignment_loss": 0.0,
+  "test_cpp_mean_loss": 0.02559503395847666,
+  "test_derivative_loss": 0.0027199520393171245,
+  "test_future_loss": 0.8905632230970595,
+  "test_late_amplitude_loss": 0.0,
+  "test_monotonic_loss": 0.0,
+  "test_recon_loss": 0.038996813223800726,
+  "test_slope_floor_loss": 0.0,
+  "test_smooth_loss": 0.0003588223076399623,
+  "test_total_loss": 0.2485695489578777,
+  "test_variance_loss": 0.0346044831805759
+}

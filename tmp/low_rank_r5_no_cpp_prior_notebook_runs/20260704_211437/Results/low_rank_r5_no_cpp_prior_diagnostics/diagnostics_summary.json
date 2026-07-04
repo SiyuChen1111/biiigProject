@@ -1,0 +1,24 @@
+{
+  "diagnostics_dir": "/Users/hyijie/Desktop/My_projecting/biiigProject/tmp/low_rank_r5_no_cpp_prior_notebook_runs/20260704_211437/Results/low_rank_r5_no_cpp_prior_diagnostics",
+  "figures": [
+    "cpp_average_reconstruction_comparison.png",
+    "rank5_latent_preview_z1_to_z5.png",
+    "rank5_z1_to_z5_average_trajectories.png",
+    "reconstruction_and_prediction_examples.png",
+    "trial_level_rank5_latent_examples.png",
+    "z_cpp_behavior_correlation_heatmap.png",
+    "z_rt_time_resolved_correlation.png",
+    "z_trajectories_by_rt_tertile.png"
+  ],
+  "latent_shape": [
+    7297,
+    308,
+    5
+  ],
+  "rank": 5,
+  "tables": [
+    "z_cpp_behavior_correlation_matrix.csv",
+    "z_rt_time_resolved_correlation.csv",
+    "z_trajectories_by_rt_tertile.csv"
+  ]
+}
