@@ -669,3 +669,65 @@ A 276-line written walkthrough in TIER 4.0 style. Includes: complete annotated f
 - Add drift-rate estimates to the analysis table when available.
 - Run the same nested regression design for both no-prior and CPP-prior z.
 - Emphasize only effects that are directionally stable across both versions and survive CPP/shuffled-z controls.
+
+## 2026-07-04 — Archive note, S5 regression folder, and temporal no-prior outputs
+
+### What changed
+- Added `archive/back2_ridge_regression_GRU.ipynb` as an inactive historical notebook for the earlier GRU-based ridge-regression analysis.
+- Added the active S5 regression folder:
+  - `Scripts/s5_regression/`
+  - `Scripts/s5_regression/1_latentZ_v.ipynb`
+- Executed the Rank-5 no-CPP-prior ablation notebook again and generated a new timestamped run:
+  - `tmp/low_rank_r5_no_cpp_prior_notebook_runs/20260704_211437/`
+- Produced temporal z-analysis outputs from the executed notebook.
+
+### Archived GRU ridge-regression notebook
+- File:
+  - `archive/back2_ridge_regression_GRU.ipynb`
+- Role:
+  - historical comparison/provenance for the earlier full-GRU hidden-state ridge-regression idea
+  - useful for checking how the earlier GRU features were compared with CPP amplitude, CPP peak amplitude, CPP slope, and behavioral targets
+- Current status:
+  - not part of the active default workflow
+  - do not use as the main analysis unless explicitly comparing the current low-rank z workflow against the older GRU approach
+
+### S5 regression notebook
+- Active file:
+  - `Scripts/s5_regression/1_latentZ_v.ipynb`
+- Current purpose:
+  - calculate drift-rate-like `v`
+  - calculate CPP features
+  - merge low-rank `Z` features with `v` and CPP-derived data
+  - test correlations between `v` and behavioral variables
+  - run regression models beginning with an `M0` baseline and then adding CPP / z-style predictors
+- Interpretation:
+  - this is the current follow-up surface for connecting the Rank-5 low-rank RNN latent variables to drift-rate-like and CPP regression analyses
+  - results should still be treated as exploratory until the model comparisons, controls, and retained output tables are finalized
+
+### Latest executed no-CPP-prior notebook run
+- Notebook:
+  - `Scripts/low_rank_rnn_rank5_no_cpp_prior_ablation.ipynb`
+- Executed run directory:
+  - `tmp/low_rank_r5_no_cpp_prior_notebook_runs/20260704_211437/`
+- Key generated output groups:
+  - `Results/low_rank_r5_no_cpp_prior_model_checkpoints/`
+  - `Results/low_rank_r5_no_cpp_prior_diagnostics/`
+  - `Results/low_rank_r5_no_cpp_prior_regression/`
+  - `Results/low_rank_r5_no_cpp_prior_validation/`
+
+### Temporal data produced
+- Time-resolved z / RT correlation:
+  - `Results/low_rank_r5_no_cpp_prior_diagnostics/z_rt_time_resolved_correlation.csv`
+- z trajectories by RT tertile:
+  - `Results/low_rank_r5_no_cpp_prior_diagnostics/z_trajectories_by_rt_tertile.csv`
+- z / CPP / behavior correlation matrix:
+  - `Results/low_rank_r5_no_cpp_prior_diagnostics/z_cpp_behavior_correlation_matrix.csv`
+- Diagnostic summary:
+  - `Results/low_rank_r5_no_cpp_prior_diagnostics/diagnostics_summary.json`
+
+### Current decision
+- Keep the Rank-5 no-CPP-prior workflow as the cleaner representation analysis.
+- Keep the CPP-prior Rank-5 workflow as a theory-guided comparison.
+- Use `Scripts/s5_regression/1_latentZ_v.ipynb` for the next active low-rank z / `v` regression step.
+- Treat `archive/back2_ridge_regression_GRU.ipynb` as historical GRU ridge-regression context only.
+

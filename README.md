@@ -38,6 +38,9 @@ biiigProject/
 ├── logs.md                           # Dated experiment and decision log
 ├── conftest.py                       # Root pytest path bootstrap
 ├── pytest.ini                        # Test configuration
+├── archive/
+│   └── back2_ridge_regression_GRU.ipynb
+│                                      # Historical GRU ridge-regression notebook
 ├── Data/
 │   ├── InputData/
 │   │   └── Metadata/
@@ -56,8 +59,10 @@ biiigProject/
 │   ├── s1_modeling/                  # Model, dataset loading, and data checks
 │   ├── s2_training/                  # Training, controls, sweeps, and CLI entry points
 │   ├── s3_validation/                # Validation routing notes
-│   └── s4_analysis/                  # Behavioural analysis, figures, and analysis notebooks
-│       └── notebooks/                # Step-by-step exploratory analysis notebooks
+│   ├── s4_analysis/                  # Behavioural analysis, figures, and analysis notebooks
+│   │   └── notebooks/                # Step-by-step exploratory analysis notebooks
+│   └── s5_regression/
+│       └── 1_latentZ_v.ipynb         # Low-rank z / v regression notebook
 ├── Results/
 │   ├── model_checkpoints/            # Saved trained model checkpoint
 │   ├── validation/                   # Validation tables, reports, and figures
@@ -73,6 +78,7 @@ In short:
 - `Results/` stores output figures, tables, and trained-model artifacts
 - `tests/` stores automated checks for the core pipeline
 - `README.md` is the main document a reviewer can use to understand the project
+- `archive/` stores inactive historical material and is not part of the default active workflow
 
 The repository was previously reorganized from an earlier transition layout. The active materials are now consolidated into the root-level `Data/`, `Scripts/`, `Results/`, and `tests/` structure shown above.
 
@@ -268,10 +274,18 @@ The Rank-5 low-rank RNN workflow successfully trains compact models and exports 
 Current low-rank runs:
 
 - CPP-prior comparison run: `tmp/low_rank_r5_notebook_runs/20260628_154318/`
-- no-CPP-prior run: `tmp/low_rank_r5_no_cpp_prior_notebook_runs/20260629_100551/`
+- no-CPP-prior run: `tmp/low_rank_r5_no_cpp_prior_notebook_runs/20260704_211437/`
 - dual-prior comparison outputs: `Results/rank5_dual_prior_comparison/`
 
 The dual-prior comparison found broadly consistent RT-prediction patterns across no-prior and CPP-prior z variables. Shuffled-z controls stayed near zero, and at least one planned window showed positive `baseline+CPP+z` improvement over `baseline+CPP` in both versions.
+
+The latest no-CPP-prior notebook execution also produced time-resolved z outputs used for temporal interpretation:
+
+- `z_rt_time_resolved_correlation.csv`
+- `z_trajectories_by_rt_tertile.csv`
+- `z_cpp_behavior_correlation_matrix.csv`
+
+These files are stored under the run's `Results/low_rank_r5_no_cpp_prior_diagnostics/` folder and should be treated as exploratory temporal summaries unless promoted into retained `Results/` outputs.
 
 The current interpretation is cautious:
 
@@ -332,6 +346,20 @@ The follow-up analysis plan is:
 low_rank_rnn_drift_rate_followup_plan.md
 ```
 
+For the S5 follow-up regression notebook that combines low-rank `z` variables with drift-rate-like `v` and CPP features, open:
+
+```bash
+jupyter notebook Scripts/s5_regression/1_latentZ_v.ipynb
+```
+
+Historical GRU ridge-regression work is preserved only for comparison/provenance at:
+
+```text
+archive/back2_ridge_regression_GRU.ipynb
+```
+
+Do not use the archived notebook as the default active workflow; the current main path is the Rank-5 low-rank RNN and S5 regression workflow.
+
 ### 7.3 Shortest Reviewer Path
 
 For a reviewer or course instructor opening the repository for the first time:
@@ -340,8 +368,9 @@ For a reviewer or course instructor opening the repository for the first time:
 2. Open `Scripts/master_pipeline.ipynb`
 3. Open `Scripts/low_rank_rnn_rank5_no_cpp_prior_ablation.executed.ipynb` for the cleaner no-prior compact low-rank latent analysis
 4. Read `low_rank_rnn_drift_rate_followup_plan.md` for the planned CPP / evidence accumulation / drift-rate analysis
-5. Inspect the saved outputs in `Results/validation/`, `Results/regression/`, and `Results/rank5_dual_prior_comparison/`
-6. Run the tests if needed
+5. Open `Scripts/s5_regression/1_latentZ_v.ipynb` for the current low-rank z / v regression follow-up
+6. Inspect the saved outputs in `Results/validation/`, `Results/regression/`, and `Results/rank5_dual_prior_comparison/`
+7. Run the tests if needed
 
 Test command:
 
