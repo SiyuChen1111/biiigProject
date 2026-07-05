@@ -1,439 +1,194 @@
-# biiigProject: CPP Latent Dynamics from Single-Trial EEG
+# biiigProject: Response-Locked CPP Latent Dynamics
 
-## 1. Project Overview
+## Overview
 
-This project studies whether a neural network can learn useful latent representations from single-trial EEG signals related to centro-parietal positivity (CPP), and whether those learned representations are meaningfully associated with behavioural response time.
+This repository studies whether a compact neural dynamical model can learn useful latent structure from response-locked single-trial EEG, especially from the CPP-related channels `CP1`, `CP2`, and `CPz`.
 
-The repository is organized as a complete course-style data analysis project. It includes:
+The current main line is a **no-prior Rank-5 low-rank RNN**. Its role is to learn five latent variables, `z1` to `z5`, that summarize pre-response neural dynamics in a form that is easier to inspect than the older higher-dimensional models. A **CPP-prior Rank-5 version** is still kept in the repository, but it now serves as a robustness comparison rather than the default scientific target.
 
-- project documentation
-- processed data for analysis
-- Python code for preprocessing, modeling, validation, and behavioural analysis
-- saved figures and result tables
-- tests for core pipeline components
+The practical question of the project is:
 
-The original main workflow uses a causal forward GRU model trained on response-locked EEG from the CPP-related channels `CP1`, `CP2`, and `CPz`. A newer Rank-5 low-rank RNN workflow has also been added as a compact latent-state analysis path for studying whether five learned `z` variables can support more interpretable follow-up analyses of CPP dynamics, response time, and drift-rate-like evidence accumulation. The current low-rank follow-up uses two Rank-5 versions in parallel: a no-CPP-shape-prior model as the cleaner representation analysis, and the original CPP-prior model as a theory-guided comparison.
+1. Can a Rank-5 low-rank RNN recover stable CPP-related latent dynamics from response-locked EEG?
+2. Do those latents first pass a behavioural validation step through response-time analyses?
+3. Do they then support the higher-priority drift-rate-oriented follow-up analyses aimed at mechanism rather than only prediction?
 
-## 2. Research Question
+Older GRU work is retained only as background. If historical context is needed, see [logs.md](/Users/siyu/Documents/GitHub/biiigProject/logs.md).
 
-This project addresses two linked questions:
+## Current Scientific Position
 
-1. Can a neural network reconstruct and preserve key CPP-related EEG structure from single-trial response-locked signals?
-2. Do the learned hidden representations contain useful information about behavioural response time beyond simple baseline covariates?
-3. In the newer low-rank RNN analysis, can compact Rank-5 latent variables support follow-up tests of drift rate and evidence accumulation beyond conventional CPP amplitude and CPP slope summaries?
+- **Primary model:** no-prior Rank-5 low-rank RNN.
+- **Comparison model:** CPP-prior Rank-5 low-rank RNN.
+- **Default interpretation:** use the no-prior model as the main representation analysis, then check whether conclusions remain directionally stable in the CPP-prior comparison.
+- **Behavioural priority:** RT is the earlier validation step, but drift-rate is the more important mechanistic target.
+- **Not the default main line anymore:** the earlier GRU hidden-state workflow.
 
-The project is not a paper replication assignment. It is presented as an original analysis project built around EEG latent dynamics and behaviour.
+## Repository Map
 
-## 3. Project Structure
+These are the most important places to start from.
 
-The repository uses a course-friendly folder layout so that data, code, results, and tests are easy to locate.
+- [Data/ProcessedData](/Users/siyu/Documents/GitHub/biiigProject/Data/ProcessedData)  
+  Main analysis-ready EEG, time axis, metadata, and preprocessing notes.
+- [Data/IntermediateData/latents_full](/Users/siyu/Documents/GitHub/biiigProject/Data/IntermediateData/latents_full)  
+  Exported legacy full hidden-state representations from the earlier GRU line.
+- [Scripts/low_rank_rnn_rank5_pipeline.ipynb](/Users/siyu/Documents/GitHub/biiigProject/Scripts/low_rank_rnn_rank5_pipeline.ipynb)  
+  Main Rank-5 notebook entry point.
+- [Scripts/low_rank_rnn_rank5_no_cpp_prior_ablation.ipynb](/Users/siyu/Documents/GitHub/biiigProject/Scripts/low_rank_rnn_rank5_no_cpp_prior_ablation.ipynb)  
+  Key no-prior follow-up notebook and ablation route.
+- [Scripts/s2_training/low_rank_full_training.py](/Users/siyu/Documents/GitHub/biiigProject/Scripts/s2_training/low_rank_full_training.py)  
+  Formal script for full-data Rank-5 training runs.
+- [Scripts/s4_analysis/rank5_dual_prior_comparison.py](/Users/siyu/Documents/GitHub/biiigProject/Scripts/s4_analysis/rank5_dual_prior_comparison.py)  
+  Side-by-side comparison of no-prior and CPP-prior Rank-5 latents.
+- [Scripts/s5_regression/1_latentZ_v.ipynb](/Users/siyu/Documents/GitHub/biiigProject/Scripts/s5_regression/1_latentZ_v.ipynb)  
+  Supplementary latent-to-drift-rate (`v`) regression notebook.
+- [Results/low_rank_full_training_rank5_20260626_1427](/Users/siyu/Documents/GitHub/biiigProject/Results/low_rank_full_training_rank5_20260626_1427)  
+  Formal full-data Rank-5 result package.
+- [Results/rank5_dual_prior_comparison](/Users/siyu/Documents/GitHub/biiigProject/Results/rank5_dual_prior_comparison)  
+  Committed no-prior versus CPP-prior comparison outputs.
+- [Results/regression](/Users/siyu/Documents/GitHub/biiigProject/Results/regression)  
+  Latest local supplemental RT regression results.
 
-```text
-biiigProject/
-├── README.md                         # Main project report and usage guide
-├── low_rank_rnn_drift_rate_followup_plan.md
-│                                      # Follow-up plan for z variables, CPP, and drift rate
-├── requirements.txt                  # Python dependencies with pinned versions
-├── AGENTS.md                         # Project routing and workspace rules
-├── logs.md                           # Dated experiment and decision log
-├── conftest.py                       # Root pytest path bootstrap
-├── pytest.ini                        # Test configuration
-├── archive/
-│   └── back2_ridge_regression_GRU.ipynb
-│                                      # Historical GRU ridge-regression notebook
-├── Data/
-│   ├── InputData/
-│   │   └── Metadata/
-│   │       └── DataSourcesGuide.md   # Data source and file reference notes
-│   ├── ProcessedData/                # Main analysis-ready EEG and metadata files
-│   └── IntermediateData/
-│       └── latents_full/             # Exported hidden-state representations
-├── Scripts/
-│   ├── master_pipeline.ipynb         # Recommended main entry point
-│   ├── low_rank_rnn_rank5_pipeline.ipynb
-│   │                                  # Self-contained Rank-5 low-rank RNN notebook
-│   ├── low_rank_rnn_rank5_pipeline.executed.ipynb
-│   │                                  # Executed copy of the Rank-5 low-rank RNN notebook
-│   ├── pipeline_overview.md          # Written stage-by-stage pipeline description
-│   ├── s0_preprocessing/             # Dataset construction and preprocessing scripts
-│   ├── s1_modeling/                  # Model, dataset loading, and data checks
-│   ├── s2_training/                  # Training, controls, sweeps, and CLI entry points
-│   ├── s3_validation/                # Validation routing notes
-│   ├── s4_analysis/                  # Behavioural analysis, figures, and analysis notebooks
-│   │   └── notebooks/                # Step-by-step exploratory analysis notebooks
-│   └── s5_regression/
-│       └── 1_latentZ_v.ipynb         # Low-rank z / v regression notebook
-├── Results/
-│   ├── model_checkpoints/            # Saved trained model checkpoint
-│   ├── validation/                   # Validation tables, reports, and figures
-│   ├── regression/                   # Behavioural regression outputs
-│   └── figures/                      # Saved diagnostic figures
-└── tests/                            # Automated tests for core pipeline components
-```
+## Data Snapshot
 
-In short:
+The active processed dataset is in [Data/ProcessedData](/Users/siyu/Documents/GitHub/biiigProject/Data/ProcessedData).
 
-- `Data/` stores analysis inputs and intermediate representations
-- `Scripts/` stores the main code and notebook workflow
-- `Results/` stores output figures, tables, and trained-model artifacts
-- `tests/` stores automated checks for the core pipeline
-- `README.md` is the main document a reviewer can use to understand the project
-- `archive/` stores inactive historical material and is not part of the default active workflow
-
-The repository was previously reorganized from an earlier transition layout. The active materials are now consolidated into the root-level `Data/`, `Scripts/`, `Results/`, and `tests/` structure shown above.
-
-## 4. Data Description
-
-### 4.1 Data Provided in This Repository
-
-This repository mainly provides processed data and generated results rather than the full original raw export. The included analysis-ready data are sufficient to inspect the workflow, understand the variables, and reproduce the main analysis steps once the necessary larger files are available.
-
-Main processed dataset:
-
-- `Data/ProcessedData/eeg_cpp_trials.npy`
-- `Data/ProcessedData/times_ms.npy`
-- `Data/ProcessedData/metadata.csv`
-- `Data/ProcessedData/channel_names.txt`
-- `Data/ProcessedData/preprocessing_notes.md`
-
-Main intermediate representation:
-
-- `Data/IntermediateData/latents_full/latents_full.npz`
-
-The Rank-5 low-rank RNN notebooks write generated checkpoints, figures, tables, and latent exports to timestamped temporary run directories under:
-
-- `tmp/low_rank_r5_notebook_runs/<timestamp>/`
-- `tmp/low_rank_r5_no_cpp_prior_notebook_runs/<timestamp>/`
-
-This keeps exploratory low-rank outputs separate from the existing saved GRU results.
-
-### 4.2 Dataset Size
-
-The current processed dataset contains:
-
-- `7297` retained trials
+- `7297` valid trials
+- `41` subjects
 - `308` time points per trial
-- `3` EEG channels: `CP1`, `CP2`, `CPz`
-- `41` participants
+- `3` channels: `CP1`, `CP2`, `CPz`
+- Main EEG array shape: `(7297, 308, 3)`
 
-Array shape of the main EEG file:
+Core files:
 
-- `eeg_cpp_trials.npy`: `(7297, 308, 3)`
+- [eeg_cpp_trials.npy](/Users/siyu/Documents/GitHub/biiigProject/Data/ProcessedData/eeg_cpp_trials.npy)
+- [times_ms.npy](/Users/siyu/Documents/GitHub/biiigProject/Data/ProcessedData/times_ms.npy)
+- [metadata.csv](/Users/siyu/Documents/GitHub/biiigProject/Data/ProcessedData/metadata.csv)
+- [channel_names.txt](/Users/siyu/Documents/GitHub/biiigProject/Data/ProcessedData/channel_names.txt)
+- [preprocessing_notes.md](/Users/siyu/Documents/GitHub/biiigProject/Data/ProcessedData/preprocessing_notes.md)
 
-Array shape of the latent representation:
+## Where To Start
 
-- `latents_full.npz["latents"]`: `(7297, 308, 32)`
+Recommended reading and running order:
 
-The Rank-5 low-rank RNN notebook exports compact low-rank latent states with shape:
+1. Read this file first.
+2. Read [low_rank_rnn_drift_rate_followup_plan.md](/Users/siyu/Documents/GitHub/biiigProject/low_rank_rnn_drift_rate_followup_plan.md) to see the intended interpretation and next analysis direction.
+3. Open [Scripts/low_rank_rnn_rank5_pipeline.ipynb](/Users/siyu/Documents/GitHub/biiigProject/Scripts/low_rank_rnn_rank5_pipeline.ipynb) as the main notebook route.
+4. Then open [Scripts/low_rank_rnn_rank5_no_cpp_prior_ablation.ipynb](/Users/siyu/Documents/GitHub/biiigProject/Scripts/low_rank_rnn_rank5_no_cpp_prior_ablation.ipynb) for the no-prior follow-up path.
+5. Check the RT validation outputs in [Results/regression](/Users/siyu/Documents/GitHub/biiigProject/Results/regression) to confirm that the latent space carries behavioural signal at all.
+6. Then move to [Scripts/s5_regression/1_latentZ_v.ipynb](/Users/siyu/Documents/GitHub/biiigProject/Scripts/s5_regression/1_latentZ_v.ipynb) for the higher-priority drift-rate branch.
+   This notebook uses an externally derived drift-rate target `v`, rather than a drift-rate column stored directly inside the active processed metadata.
 
-- `latents_low_rank_r5.npz["latents"]`: `(7297, 308, 5)`
-- `latents_low_rank_r5_no_cpp_prior.npz["latents"]`: `(7297, 308, 5)`
-
-### 4.3 Main Variables
-
-The trial-level metadata file contains behavioural and trial descriptors, including:
-
-- `subject_id`
-- `trial_id`
-- `RT_ms`
-- `correctness`
-- `condition`
-- `difficulty`
-- `evidence_strength`
-- `choice`
-- `response_hand`
-- `alignment`
-
-The metadata table currently has `7297` rows and `28` columns.
-
-### 4.4 Data Quality and Missingness
-
-The processed dataset was built after removing trials with non-finite EEG values. According to the preprocessing notes:
-
-- original trial pairs before removal: `10258`
-- removed trials with invalid EEG values: `2961`
-- retained trials for analysis: `7297`
-
-The current metadata file does not show missing values in the main analysis columns used in the project summary.
-
-### 4.5 Data Access
-
-The full data package was not uploaded to GitHub because the files are too large for convenient repository storage. This repository therefore focuses on the processed analysis structure, saved outputs, and reproducible code organization.
-
-If full reproduction of the larger data-dependent steps is needed, the complete data can be requested by contacting the author through GitHub.
-
-## 5. Methods and Workflow
-
-The analysis pipeline follows four main stages.
-
-### 5.1 Data Preparation
-
-The project first organizes response-locked EEG and behavioural metadata into a trial-level dataset. The focus is on the CPP-related channels `CP1`, `CP2`, and `CPz`.
-
-Key outputs of this stage:
-
-- trial-by-time EEG array
-- time axis in milliseconds
-- cleaned behavioural metadata
-- channel-name record
-
-### 5.2 Model Training
-
-A causal forward GRU is trained on the EEG data. The model is designed to learn hidden representations that preserve important temporal structure while reconstructing the signal and predicting the immediate future of the waveform.
-
-Training emphasizes:
-
-- current-frame reconstruction
-- short-horizon future prediction
-- preservation of CPP-related waveform structure
-
-### 5.3 Neural Validation
-
-After training, the saved hidden states are checked against EEG-based targets. This stage asks whether the learned representation still carries meaningful CPP-related information rather than only producing visually plausible outputs.
-
-This validation includes:
-
-- neural reconstruction fit
-- CPP waveform comparison
-- hidden-state to CPP prediction checks
-- control comparisons against weaker baselines
-
-### 5.4 Behavioural Analysis
-
-The final stage examines whether the learned hidden states help explain behavioural response time.
-
-This stage includes:
-
-- window-based hidden-state summarization
-- ridge regression for `log(RT_ms)`
-- baseline-versus-hidden comparison
-- saved plots and result tables
-
-### 5.5 Rank-5 Low-Rank RNN Analysis
-
-The newer low-rank RNN notebook provides a self-contained alternative model and analysis workflow. It fixes the recurrent latent dimension at Rank 5 and exposes five low-rank latent variables, `z1` through `z5`, at every trial and time point.
-
-This workflow includes:
-
-- self-supervised training, validation, and held-out testing
-- latent export for `z1`-`z5`
-- publication-style diagnostic figures
-- subject-aware ridge regression for response-time prediction
-- fold-level metrics, confidence intervals, permutation controls, and shuffled-z controls
-- time-resolved z-RT correlations and z/CPP/behaviour correlation summaries
-
-The current low-rank analysis compares two versions of the same Rank-5 architecture:
-
-- `rank5_no_cpp_prior`: CPP-shape-prior losses disabled; used as the cleaner representation analysis.
-- `rank5_cpp_prior`: original CPP-shape-prior version; retained as a theory-guided robustness comparison.
-
-The main interpretation focuses on the planned response-locked windows from `-600` to `-50 ms`. The earlier `-1000` to `-600 ms` interval is used only as a quality-check/background window, not as a main mechanism window. The purpose of this branch is not to claim that the z variables are CPP or drift rate directly. Instead, it provides compact latent-state representations for testing whether CPP-related neural dynamics track behaviour and later drift-rate-like variation.
-
-## 6. Main Results
-
-### 6.1 Core Results
-
-The strongest results support the two main claims of the project.
-
-#### A. The model captures key CPP-related EEG structure well
-
-Main neural validation results:
-
-- held-out neural reconstruction `R^2 = 0.8810`
-- empirical-predicted neural correlation `= 0.9407`
-- CPP waveform correlation `= 0.9981`
-- CPP amplitude prediction in the broad pre-response window reached very high agreement in validation summaries
-
-These results support the claim that the model learned a useful representation of the response-locked EEG structure rather than only fitting noise.
-
-#### B. Hidden representations carry behaviour-related information
-
-The behavioural regression results show that hidden-state features improve response-time prediction in the best pre-response window:
-
-- baseline `R^2 = 0.197`
-- baseline plus hidden states `R^2 = 0.300`
-- improvement `delta R^2 = 0.103`
-
-This supports the project’s second main conclusion: the learned latent representation contains information related to behavioural response time.
-
-### 6.2 Supplementary Results
-
-Additional checks help define what the model does and does not capture well.
-
-- hidden states strongly preserve CPP amplitude information
-- RT-related decoding is more stable than condition or choice decoding
-- choice and condition decoding are close to chance in the reported summaries
-- some auxiliary task-variable findings are weak and should not be overinterpreted
-
-These supplementary results strengthen the interpretation that the model is more successful at preserving CPP-related and broad RT-related structure than at capturing fine-grained task identity.
-
-### 6.3 Current Low-Rank RNN Status
-
-The Rank-5 low-rank RNN workflow successfully trains compact models and exports latent states with shape `(7297, 308, 5)`. The latest executed notebooks also add paper-style figures and more careful behavioural statistics, including subject-aware cross-validation and shuffled-z controls.
-
-Current low-rank runs:
-
-- CPP-prior comparison run: `tmp/low_rank_r5_notebook_runs/20260628_154318/`
-- no-CPP-prior run: `tmp/low_rank_r5_no_cpp_prior_notebook_runs/20260704_211437/`
-- dual-prior comparison outputs: `Results/rank5_dual_prior_comparison/`
-
-The dual-prior comparison found broadly consistent RT-prediction patterns across no-prior and CPP-prior z variables. Shuffled-z controls stayed near zero, and at least one planned window showed positive `baseline+CPP+z` improvement over `baseline+CPP` in both versions.
-
-The latest no-CPP-prior notebook execution also produced time-resolved z outputs used for temporal interpretation:
-
-- `z_rt_time_resolved_correlation.csv`
-- `z_trajectories_by_rt_tertile.csv`
-- `z_cpp_behavior_correlation_matrix.csv`
-
-These files are stored under the run's `Results/low_rank_r5_no_cpp_prior_diagnostics/` folder and should be treated as exploratory temporal summaries unless promoted into retained `Results/` outputs.
-
-The current interpretation is cautious:
-
-- Rank-5 z variables appear useful as compact summaries of trial-level neural dynamics.
-- They may be better suited than the earlier full GRU hidden states for follow-up drift-rate analysis because they are lower-dimensional and easier to inspect.
-- No-prior z is treated as the cleaner representation analysis; CPP-prior z is treated as a theory-guided comparison.
-- They should not yet be interpreted as direct CPP components, direct DDM parameters, or proven drift-rate estimates.
-
-The next planned analysis is described in `low_rank_rnn_drift_rate_followup_plan.md`. It focuses on whether z variables explain drift rate or evidence accumulation beyond conventional CPP amplitude and CPP slope summaries.
-
-## 7. How to Run
-
-### 7.1 Environment
-
-Recommended environment:
-
-- Python `3.13`
-- Jupyter Notebook
-
-Install dependencies from the project root:
+Minimal command examples:
 
 ```bash
-pip install -r requirements.txt
+jupyter notebook /Users/siyu/Documents/GitHub/biiigProject/Scripts/low_rank_rnn_rank5_pipeline.ipynb
 ```
-
-### 7.2 Main Entry Point
-
-The recommended starting point is:
 
 ```bash
-jupyter notebook Scripts/master_pipeline.ipynb
+python /Users/siyu/Documents/GitHub/biiigProject/Scripts/s2_training/low_rank_full_training.py \
+  --dataset-dir /Users/siyu/Documents/GitHub/biiigProject/Data/ProcessedData \
+  --output-dir /Users/siyu/Documents/GitHub/biiigProject/Results/low_rank_full_training_rank5
 ```
 
-This notebook is the clearest reviewer-facing entry point because it walks through the pipeline step by step.
+`Scripts/master_pipeline.ipynb` is still available as a broader legacy overview, but it is no longer the default first entry point for the active low-rank line.
 
-For the Rank-5 low-rank RNN workflow, open:
+## Current Results
 
-```bash
-jupyter notebook Scripts/low_rank_rnn_rank5_pipeline.ipynb
-```
+### 1. Formal full-data Rank-5 result
 
-For the no-CPP-prior Rank-5 ablation and current cleaner representation analysis, open:
+The current formal result package is [Results/low_rank_full_training_rank5_20260626_1427](/Users/siyu/Documents/GitHub/biiigProject/Results/low_rank_full_training_rank5_20260626_1427).
 
-```bash
-jupyter notebook Scripts/low_rank_rnn_rank5_no_cpp_prior_ablation.ipynb
-```
+What it currently supports:
 
-The executed copy is available at:
+- The formal run used `41` subjects and `7297` valid response-locked trials.
+- Across five seeds, the model consistently recovered a low-dimensional latent aligned with CPP-like response-proximal dynamics.
+- The main value of the Rank-5 model is not just prediction score. It gives a compact and more interpretable latent description of CPP-related dynamics.
 
-```text
-Scripts/low_rank_rnn_rank5_pipeline.executed.ipynb
-Scripts/low_rank_rnn_rank5_no_cpp_prior_ablation.executed.ipynb
-```
+For a detailed summary, see [Results/low_rank_full_training_rank5_20260626_1427/README.md](/Users/siyu/Documents/GitHub/biiigProject/Results/low_rank_full_training_rank5_20260626_1427/README.md).
 
-The follow-up analysis plan is:
+### 2. Committed dual-prior comparison
 
-```text
-low_rank_rnn_drift_rate_followup_plan.md
-```
+The committed no-prior versus CPP-prior comparison is in [Results/rank5_dual_prior_comparison](/Users/siyu/Documents/GitHub/biiigProject/Results/rank5_dual_prior_comparison).
 
-For the S5 follow-up regression notebook that combines low-rank `z` variables with drift-rate-like `v` and CPP features, open:
+What stands out:
 
-```bash
-jupyter notebook Scripts/s5_regression/1_latentZ_v.ipynb
-```
+- The strongest RT-related signal in both model versions appears at about `-554 ms`.
+- The strongest latent-to-RT effect is therefore not unique to only one variant.
+- This supports using the no-prior model as the main interpretive anchor while still checking directional consistency against the CPP-prior comparison.
 
-Historical GRU ridge-regression work is preserved only for comparison/provenance at:
+Useful files:
 
-```text
-archive/back2_ridge_regression_GRU.ipynb
-```
+- [dual_prior_summary.json](/Users/siyu/Documents/GitHub/biiigProject/Results/rank5_dual_prior_comparison/dual_prior_summary.json)
+- [dual_prior_performance.csv](/Users/siyu/Documents/GitHub/biiigProject/Results/rank5_dual_prior_comparison/dual_prior_performance.csv)
+- [dual_prior_strongest_z_rt.csv](/Users/siyu/Documents/GitHub/biiigProject/Results/rank5_dual_prior_comparison/dual_prior_strongest_z_rt.csv)
 
-Do not use the archived notebook as the default active workflow; the current main path is the Rank-5 low-rank RNN and S5 regression workflow.
+### 3. Behavioural sequencing: RT first, drift-rate next
 
-### 7.3 Shortest Reviewer Path
+The repository now contains two behavioural layers with different roles:
 
-For a reviewer or course instructor opening the repository for the first time:
+- **RT regression** is the earlier validation step. It asks whether the latent space carries usable behavioural information at all.
+- **Drift-rate regression** is the more important mechanistic follow-up. It asks whether selected latent windows help explain the externally derived drift parameter `v`.
 
-1. Open `README.md`
-2. Open `Scripts/master_pipeline.ipynb`
-3. Open `Scripts/low_rank_rnn_rank5_no_cpp_prior_ablation.executed.ipynb` for the cleaner no-prior compact low-rank latent analysis
-4. Read `low_rank_rnn_drift_rate_followup_plan.md` for the planned CPP / evidence accumulation / drift-rate analysis
-5. Open `Scripts/s5_regression/1_latentZ_v.ipynb` for the current low-rank z / v regression follow-up
-6. Inspect the saved outputs in `Results/validation/`, `Results/regression/`, and `Results/rank5_dual_prior_comparison/`
-7. Run the tests if needed
+This ordering matters because a latent space can improve RT prediction without necessarily supporting the stronger claim that it aligns with drift-like evidence-accumulation structure.
 
-Test command:
+### 4. Latest local supplemental RT regression
 
-```bash
-python -m pytest tests/ -v
-```
+The newest local RT validation results are in [Results/regression](/Users/siyu/Documents/GitHub/biiigProject/Results/regression).
 
-### 7.4 Command-Line Alternatives
+Current takeaway:
 
-Key command-line entry points also exist through:
+- The early window, `-600 to -300 ms`, shows the largest RT improvement when hidden or latent information is added.
+- In the local summary files, the early-window RT gain is larger than the mid and late windows.
+- This makes the early pre-response period an important target for follow-up interpretation.
 
-```bash
-python Scripts/s2_training/cli.py validate --dataset-dir Data/ProcessedData
-python Scripts/s2_training/cli.py train --dataset-dir Data/ProcessedData --output-dir Results/model_checkpoints
-python Scripts/s2_training/cli.py extract-latents --dataset-dir Data/ProcessedData --checkpoint-path Results/model_checkpoints/best_model.pt --output-dir Data/IntermediateData/latents_full
-python Scripts/s2_training/cli.py ridge-rt --dataset-dir Data/ProcessedData --latent-path Data/IntermediateData/latents_full/latents_full.npz --output-dir Results/regression
-```
+Useful files:
 
-### 7.5 What Can Be Viewed Without the Full Large Data Package
+- [ridge_rt_performance.csv](/Users/siyu/Documents/GitHub/biiigProject/Results/regression/ridge_rt_performance.csv)
+- [ridge_rt_deltas.csv](/Users/siyu/Documents/GitHub/biiigProject/Results/regression/ridge_rt_deltas.csv)
 
-Even without the full larger source-data package, a reviewer can still:
+### 5. Drift-rate branch
 
-- inspect the project structure
-- read the pipeline notebook
-- view saved result tables and figures
-- inspect processed metadata and documentation
-- run tests on the core modeling and analysis code
+This distinction matters:
 
-For complete end-to-end regeneration of all large data-dependent steps, the full data package is still required.
+- **RT regression has already been run** and is represented in the local regression outputs above.
+- **A drift-rate-oriented supplementary analysis already exists** in [Scripts/s5_regression/1_latentZ_v.ipynb](/Users/siyu/Documents/GitHub/biiigProject/Scripts/s5_regression/1_latentZ_v.ipynb).
+- In that notebook, the dependent variable is `v`, a drift-rate quantity reconstructed from [Data/model_traces/m5_traces.csv](/Users/siyu/Documents/GitHub/biiigProject/Data/model_traces/m5_traces.csv) and merged with [Data/joint-modeling/data_joint_modeling_all.csv](/Users/siyu/Documents/GitHub/biiigProject/Data/joint-modeling/data_joint_modeling_all.csv).
+- The current drift-rate significance map and ranked summary are exported in [Results/regression/drift_rate_latent_significance.svg](/Users/siyu/Documents/GitHub/biiigProject/Results/regression/drift_rate_latent_significance.svg), [Results/regression/drift_rate_latent_significance.pdf](/Users/siyu/Documents/GitHub/biiigProject/Results/regression/drift_rate_latent_significance.pdf), and [Results/regression/drift_rate_latent_significance.csv](/Users/siyu/Documents/GitHub/biiigProject/Results/regression/drift_rate_latent_significance.csv).
+- In the current local run, the strongest drift-rate-related additions come from response-proximal windows, especially `z3`, followed by `z2` and `z5`, whereas the early window is comparatively weak.
+- **What is still not unified yet** is the main low-rank / dual-prior pipeline: its active processed metadata do not yet carry a standard drift-rate column in the same way they carry RT and trial descriptors.
 
-## 8. Reproducibility and Data Access
+So, at the moment, the repository contains **both RT validation and a higher-priority drift-rate branch**, but the drift-rate branch is still not fully unified into the canonical low-rank metadata workflow.
 
-This repository was prepared to show a complete project structure with documentation, code, data descriptions, saved outputs, and tests.
+## Supplementary Branches
 
-Reproducibility status:
+These are useful side branches, but they should not replace the main low-rank entry path.
 
-- core project code is included
-- saved outputs and figures are included
-- processed data description is included
-- tests for major pipeline components are included
-- full large raw/working data are not fully bundled in GitHub due to size limits
+- [Scripts/s5_regression](/Users/siyu/Documents/GitHub/biiigProject/Scripts/s5_regression)  
+  Behavioural follow-up notebooks, including the current higher-priority latent-to-drift-rate `z` to `v` route.
+- [Data/joint-modeling](/Users/siyu/Documents/GitHub/biiigProject/Data/joint-modeling)  
+  Additional data prepared for joint modelling style follow-up work.
+- [Data/model_traces](/Users/siyu/Documents/GitHub/biiigProject/Data/model_traces)  
+  Saved traces that support side analyses and inspection.
 
-If full reproduction is required for review, the author can provide the larger data files upon request through GitHub contact.
+Local exploratory scripts that are not yet part of the stable main entry route may exist in the repository, but they should be treated as supplemental checks rather than canonical starting points.
 
-For additional file-level details, see:
+## Legacy Context
 
-- `Scripts/pipeline_overview.md`
-- `Data/InputData/Metadata/DataSourcesGuide.md`
-- `Data/ProcessedData/preprocessing_notes.md`
+The repository still contains older GRU-era materials, legacy notebooks, and archived outputs. They remain useful for provenance and comparison, but they are no longer the default way to understand or run the active project.
 
-## 9. Limitations
+For historical milestones and older workflow decisions, see [logs.md](/Users/siyu/Documents/GitHub/biiigProject/logs.md). Do not start from `archive/` unless you specifically need old provenance.
 
-This project has several important limitations that should be stated clearly.
+## Selected References
 
-- The full large data package is not included in the GitHub repository because of file size constraints.
-- The repository is strongest as a structured analysis submission with saved outputs, processed data description, and runnable code, rather than as a fully self-contained large-data archive.
-- Some auxiliary decoding results are weak or near chance, especially for choice and condition.
-- The project supports cautious claims about CPP-related neural structure and response-time association, not overly strong claims about all task variables.
-- Drift-rate and DDM-style analyses are now framed as the next planned mechanism-validation step rather than as completed evidence.
-- The Rank-5 low-rank z variables should be treated as compact latent-state summaries, not as proven CPP components or direct drift-rate parameters.
+- [Nature Neuroscience article `s41593-022-01088-4`](https://www.nature.com/articles/s41593-022-01088-4)  
+  Useful here because it supports the broader idea that low-dimensional neural population dynamics can carry interpretable computational structure.
+- [Mastrogiuseppe and Ostojic, Neuron 2018](https://www.cell.com/neuron/fulltext/S0896-6273(18)30173-5)  
+  Useful here because it gives the clearest theoretical foundation for why low-rank recurrent networks can produce structured, interpretable low-dimensional dynamics.
 
-## 10. References
+## Quick Orientation
 
-- Kosciessa, J. Q., et al. (2021). *Thalamocortical excitability modulation guides human perception under uncertainty*. Nature Communications, 12, 2430. https://doi.org/10.1038/s41467-021-22511-7
-- van Bergen, R. S., & Jehee, J. F. M. (2019). Reference behavioural/CPP material used for audit comparison in repository notes.
-- TIER Protocol 4.0. [https://www.projecttier.org/tier-protocol/protocol-4-0/](https://www.projecttier.org/tier-protocol/protocol-4-0/)
+If you only need the shortest possible route:
+
+1. Open [Scripts/low_rank_rnn_rank5_pipeline.ipynb](/Users/siyu/Documents/GitHub/biiigProject/Scripts/low_rank_rnn_rank5_pipeline.ipynb).
+2. Check [Results/low_rank_full_training_rank5_20260626_1427](/Users/siyu/Documents/GitHub/biiigProject/Results/low_rank_full_training_rank5_20260626_1427).
+3. Compare against [Results/rank5_dual_prior_comparison](/Users/siyu/Documents/GitHub/biiigProject/Results/rank5_dual_prior_comparison).
+4. Use [Results/regression](/Users/siyu/Documents/GitHub/biiigProject/Results/regression) first for RT validation, then for the exported drift-rate significance figure.
